@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'rekap_screen.dart';
-import 'tracking_screen.dart';
-import 'akun_screen.dart';
+import 'package:godus/view/rekap_screen.dart';
+import 'package:godus/view/tracking_screen.dart';
+import 'package:godus/view/akun_screen.dart';
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
