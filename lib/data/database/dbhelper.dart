@@ -195,7 +195,9 @@ class DatabaseHelper {
 
   Future<void> insertAlamat(AlamatPenjual alamat) async {
     final db = await database;
-    await db.insert('alamat_penjual', alamat.toMap());
+    Map<String, dynamic> alamatMap = alamat.toMap();
+    alamatMap['FK_idUser'] = 1; 
+    await db.insert('alamat_penjual', alamatMap);
   }
 
   Future<void> updateAlamat(AlamatPenjual alamat) async {

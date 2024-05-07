@@ -147,6 +147,10 @@ class _AlamatScreenState extends State<AlamatScreen> {
       padding: const EdgeInsets.only(bottom: 20),
       child: TextField(
         controller: controller,
+        onChanged: (newValue) {
+          // Ketika nilai berubah, perbarui nilai kontroler
+          controller.text = newValue;
+        },
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(

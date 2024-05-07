@@ -1,9 +1,6 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:geocoding/geocoding.dart';
 
 class NetworkHelper {
-  final String apiKey = 'jA61AG11ixOJ2LPcjy4dmwCOfYjCZW4H';
-
   Future<Map<String, double?>> getLatLngFromAddress({
     required String dusun,
     required String jalan,
@@ -13,29 +10,23 @@ class NetworkHelper {
     required String kecamatan,
     required String kabupaten,
   }) async {
-    String location =
-        'Dusun $dusun,$jalan,RT $rt,RW $rw,Desa $desa,Kecamatan $kecamatan,$kabupaten,Jawa Timur,Indonesia';
-    String url =
-        'https://www.mapquestapi.com/geocoding/v1/address?key=$apiKey&location=$location';
+    try {
+      List<Location> locations = await locationFromAddress(
+          "$jalan, $dusun,$desa, Kec. $kecamatan, Kabupaten $kabupaten, Jawa Timur");
+      print(locations);
 
-    final response = await http.get(Uri.parse(url));
+      double latitude = locations.first.latitude;
+      print(latitude);
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = json.decode(response.body);
-      List<dynamic> results = data['results'];
-      if (results.isNotEmpty) {
-        Map<String, dynamic> firstResult = results[0];
-        List<dynamic> locations = firstResult['locations'];
-        if (locations.isNotEmpty) {
-          Map<String, dynamic> firstLocation = locations[0];
-          Map<String, dynamic> latLng = firstLocation['latLng'];
-          double latitude = latLng['lat'];
-          double longitude = latLng['lng'];
-          return {'latitude': latitude, 'longitude': longitude};
-        }
-      }
+      double longitude = locations.first.longitude;
+      print(longitude);
+
+      // Mengembalikan latitude dan longitude
+      return {'latitude': latitude, 'longitude': longitude};
+    } catch (e) {
+      // Tangani kesalahan dan kembalikan null jika terjadi kesalahan
+      print('Error: $e');
+      return {'latitude': null, 'longitude': null};
     }
-    // Jika gagal mendapatkan data, kembalikan null
-    return {'latitude': null, 'longitude': null};
   }
 }

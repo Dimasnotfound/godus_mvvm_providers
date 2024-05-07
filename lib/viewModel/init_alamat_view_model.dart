@@ -6,94 +6,100 @@ import 'package:godus/utils/routes/routes_names.dart';
 import 'package:godus/utils/utils.dart';
 
 class AlamatViewModel with ChangeNotifier {
-  TextEditingController dusunController = TextEditingController();
-  TextEditingController rtController = TextEditingController();
-  TextEditingController rwController = TextEditingController();
-  TextEditingController jalanController = TextEditingController();
-  TextEditingController desaController = TextEditingController();
-  TextEditingController kecamatanController = TextEditingController();
-  TextEditingController kabupatenController = TextEditingController();
+  late TextEditingController dusunController = TextEditingController();
+  late TextEditingController rtController = TextEditingController();
+  late TextEditingController rwController = TextEditingController();
+  late TextEditingController jalanController = TextEditingController();
+  late TextEditingController desaController = TextEditingController();
+  late TextEditingController kecamatanController = TextEditingController();
+  late TextEditingController kabupatenController = TextEditingController();
 
-  void fetchDataAndFillTextControllers() async {
+  double? latitude;
+  double? longitude;
+
+  Future<void> fetchDataAndFillTextControllers() async {
     final List<AlamatPenjual> alamatPenjualList =
         await DatabaseHelper().getAlamatPenjualList();
     if (alamatPenjualList.isNotEmpty) {
-      dusunController.text = alamatPenjualList[0].dusun ?? '';
-      rtController.text = alamatPenjualList[0].rt ?? '';
-      rwController.text = alamatPenjualList[0].rw ?? '';
-      jalanController.text = alamatPenjualList[0].jalan ?? '';
-      desaController.text = alamatPenjualList[0].desa ?? '';
-      kecamatanController.text = alamatPenjualList[0].kecamatan ?? '';
-      kabupatenController.text = alamatPenjualList[0].kabupaten ?? '';
-    } else {
-      // Set default values or leave them empty
+      final alamatPenjual = alamatPenjualList[0];
+      if (dusunController.text.isEmpty) {
+        dusunController.text = alamatPenjual.dusun ?? '';
+      }
+      if (rtController.text.isEmpty) {
+        rtController.text = alamatPenjual.rt ?? '';
+      }
+      if (rwController.text.isEmpty) {
+        rwController.text = alamatPenjual.rw ?? '';
+      }
+      if (jalanController.text.isEmpty) {
+        jalanController.text = alamatPenjual.jalan ?? '';
+      }
+      if (desaController.text.isEmpty) {
+        desaController.text = alamatPenjual.desa ?? '';
+      }
+      if (kecamatanController.text.isEmpty) {
+        kecamatanController.text = alamatPenjual.kecamatan ?? '';
+      }
+      if (kabupatenController.text.isEmpty) {
+        kabupatenController.text = alamatPenjual.kabupaten ?? '';
+      }
     }
   }
-double? latitude;
-  double? longitude;
 
-  void saveOrUpdateAlamat(BuildContext context) async {
-  // Validasi input
-   if (dusunController.text.isEmpty ||
-      rtController.text.isEmpty ||
-      rwController.text.isEmpty ||
-      jalanController.text.isEmpty ||
-      desaController.text.isEmpty ||
-      kecamatanController.text.isEmpty) {
-    Utils.showErrorSnackBar(
-      Overlay.of(context),
-      "Alamat Tidak Boleh Kosong",
+  Future<void> saveOrUpdateAlamat(BuildContext context) async {
+    if (dusunController.text.isEmpty ||
+        rtController.text.isEmpty ||
+        rwController.text.isEmpty ||
+        jalanController.text.isEmpty ||
+        desaController.text.isEmpty ||
+        kecamatanController.text.isEmpty) {
+      Utils.showErrorSnackBar(
+        Overlay.of(context),
+        "Alamat Tidak Boleh Kosong",
+      );
+      return;
+    }
+
+    final networkHelper = NetworkHelper();
+    final latLng = await networkHelper.getLatLngFromAddress(
+      dusun: dusunController.text,
+      jalan: jalanController.text,
+      rt: rtController.text,
+      rw: rwController.text,
+      desa: desaController.text,
+      kecamatan: kecamatanController.text,
+      kabupaten: kabupatenController.text,
     );
-    return; // Hentikan eksekusi jika ada input yang kosong
-  }
 
-  NetworkHelper networkHelper = NetworkHelper();
-  Map<String, double?> latLng = await networkHelper.getLatLngFromAddress(
-    dusun: dusunController.text,
-    jalan: jalanController.text,
-    rt: rtController.text,
-    rw: rwController.text,
-    desa: desaController.text,
-    kecamatan: kecamatanController.text,
-    kabupaten: kabupatenController.text,
-  );
-
-  if (latLng['latitude'] != null && latLng['longitude'] != null) {
     latitude = latLng['latitude'];
     longitude = latLng['longitude'];
+
+    final dbHelper = DatabaseHelper();
+    final alamat = AlamatPenjual(
+      dusun: dusunController.text,
+      rt: rtController.text,
+      rw: rwController.text,
+      jalan: jalanController.text,
+      desa: desaController.text,
+      kecamatan: kecamatanController.text,
+      kabupaten: kabupatenController.text,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    final existingAlamat = await dbHelper.getAlamat();
+    if (existingAlamat == null) {
+      await dbHelper.insertAlamat(alamat);
+    } else {
+      alamat.id = existingAlamat.id;
+      await dbHelper.updateAlamat(alamat);
+    }
+
+    Utils.showSuccessSnackBar(
+      Overlay.of(context),
+      "Data Berhasil Disimpan",
+    );
+
+    Navigator.pushNamed(context, RouteNames.home);
   }
-
-  DatabaseHelper dbHelper = DatabaseHelper();
-  AlamatPenjual alamat = AlamatPenjual(
-    dusun: dusunController.text,
-    rt: rtController.text,
-    rw: rwController.text,
-    jalan: jalanController.text,
-    desa: desaController.text,
-    kecamatan: kecamatanController.text,
-    kabupaten: kabupatenController.text,
-    latitude: latitude,
-    longitude: longitude,
-  );
-
-  // Cek apakah data alamat sudah ada dalam database
-  AlamatPenjual? existingAlamat = await dbHelper.getAlamat();
-  if (existingAlamat == null) {
-    // Jika belum ada, maka lakukan penyimpanan data
-    await dbHelper.insertAlamat(alamat);
-  } else {
-    // Jika sudah ada, maka lakukan pembaruan data
-    alamat.id = existingAlamat.id;
-    await dbHelper.updateAlamat(alamat);
-  }
-
-  Utils.showSuccessSnackBar(
-  Overlay.of(context),
-  "Data Berhasil Disimpan",
-);
-
-  // Arahkan pengguna ke halaman beranda
-  Navigator.pushNamed(context, RouteNames.home);
-}
-
 }
