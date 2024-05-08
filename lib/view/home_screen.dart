@@ -34,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final preferences = Provider.of<UserViewModel>(context);
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -44,8 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Image.asset(
                 'assets/goatjumping.png',
-                width: 20,
-                height: 32,
+                width: screenWidth * 0.0485314,
+                height: screenHeight * 0.036894,
               ),
             ),
             const Expanded(

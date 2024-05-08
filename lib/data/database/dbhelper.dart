@@ -2,6 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import 'package:godus/models/alamat_penjual_model.dart';
+import 'package:godus/models/muatan_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -96,6 +97,13 @@ class DatabaseHelper {
             FK_idalamat_penjual INTEGER,
             FK_idalamat_pembeli INTEGER,
             FK_idRekap INTEGER
+          )
+          ''');
+
+    await db.execute('''
+          CREATE TABLE IF NOT EXISTS muatan(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            jumlah INTEGER
           )
           ''');
 
@@ -196,7 +204,7 @@ class DatabaseHelper {
   Future<void> insertAlamat(AlamatPenjual alamat) async {
     final db = await database;
     Map<String, dynamic> alamatMap = alamat.toMap();
-    alamatMap['FK_idUser'] = 1; 
+    alamatMap['FK_idUser'] = 1;
     await db.insert('alamat_penjual', alamatMap);
   }
 
@@ -208,5 +216,53 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [alamat.id],
     );
+  }
+
+  Future<void> insertOrUpdateMuatan(Muatan muatan) async {
+    try {
+      final db = await database;
+      await db.execute('''
+      CREATE TABLE IF NOT EXISTS muatan(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        jumlah INTEGER
+      )
+    ''');
+      await db.transaction((txn) async {
+        // Cek apakah muatan sudah ada
+        final existingMuatan = await txn.query(
+          'muatan',
+          where: 'id = 1',
+        );
+
+        if (existingMuatan.isNotEmpty) {
+          // Jika muatan sudah ada, lakukan update
+          await txn.update(
+            'muatan',
+            muatan.toMap(),
+            where: 'id = 1',
+          );
+        } else {
+          // Jika muatan belum ada, lakukan insert
+          await txn.insert('muatan', muatan.toMap());
+        }
+      });
+    } catch (e) {
+      // print('Error inserting or updating muatan: $e');
+      // Handle the error as needed
+    }
+  }
+
+  Future<Muatan?> getMuatan() async {
+    final db = await database;
+    final List<Map<String, dynamic>> muatanList =
+        await db.query('muatan', where: 'id = 1');
+
+    if (muatanList.isNotEmpty) {
+      return Muatan(
+        id: muatanList[0]['id'],
+        jumlah: muatanList[0]['jumlah'],
+      );
+    }
+    return null;
   }
 }

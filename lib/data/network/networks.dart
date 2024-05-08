@@ -13,19 +13,19 @@ class NetworkHelper {
     try {
       List<Location> locations = await locationFromAddress(
           "$jalan, $dusun,$desa, Kec. $kecamatan, Kabupaten $kabupaten, Jawa Timur");
-      print(locations);
+      // print(locations);
 
       double latitude = locations.first.latitude;
-      print(latitude);
+      // print(latitude);
 
       double longitude = locations.first.longitude;
-      print(longitude);
+      // print(longitude);
 
       // Mengembalikan latitude dan longitude
       return {'latitude': latitude, 'longitude': longitude};
     } catch (e) {
       // Tangani kesalahan dan kembalikan null jika terjadi kesalahan
-      print('Error: $e');
+      // print('Error: $e');
       return {'latitude': null, 'longitude': null};
     }
   }
