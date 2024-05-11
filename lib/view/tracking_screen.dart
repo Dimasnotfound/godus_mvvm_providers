@@ -157,6 +157,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           children: [
             FloatingActionButton.extended(
               onPressed: () => _selectDate(context),
+              elevation: 6,
               label: Text(
                 isDateSelected
                     ? _getFormattedDate(selectedDate)
@@ -177,7 +178,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
             const SizedBox(width: 8),
             FloatingActionButton.extended(
               onPressed: () => _showCargoDialog(context),
-              elevation: 20,
+              elevation: 10,
               label: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

@@ -6,6 +6,7 @@ import 'package:godus/viewModel/home_view_model.dart';
 import 'package:godus/viewModel/user_view_model.dart';
 import 'package:godus/viewModel/tracking_view_model.dart';
 import 'package:godus/viewModel/init_alamat_view_model.dart';
+import 'package:godus/viewModel/rekap_view_model.dart';
 import 'package:godus/data/database/dbhelper.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => HomeViewModel()),
           ChangeNotifierProvider(create: (_) => AlamatViewModel()),
           ChangeNotifierProvider(create: (_) => TrackingViewModel()),
+          ChangeNotifierProvider(create: (_) => RekapViewModel()),
         ],
         child: PopScope(
           canPop: false, // Set to false to prevent popping
