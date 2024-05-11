@@ -3,6 +3,7 @@ import 'package:flutter_expanded_tile/flutter_expanded_tile.dart';
 import 'package:intl/intl.dart';
 import 'package:godus/viewModel/rekap_view_model.dart';
 import 'package:provider/provider.dart';
+import 'package:godus/utils/utils.dart';
 
 class RekapScreen extends StatefulWidget {
   const RekapScreen({super.key});
@@ -268,7 +269,6 @@ class _RekapScreenState extends State<RekapScreen> {
             TextFormField(
               readOnly: true,
               controller: viewModel.alamatController,
-              // controller: _dateController,
               onTap: () {
                 _showAlamatWidget(context);
               },
@@ -323,9 +323,24 @@ class _RekapScreenState extends State<RekapScreen> {
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
-                  onPressed: () {
-                    // Tambahkan logika untuk menyimpan atau mengupdate alamat
-                    Navigator.pop(context);
+                  onPressed: () async {
+                    // Periksa apakah ada yang kosong
+                    if (viewModel.namaPembeliController.text.isEmpty ||
+                        viewModel.jumlahKambingController.text.isEmpty ||
+                        viewModel.hargaController.text.isEmpty ||
+                        viewModel.tanggalController.text.isEmpty ||
+                        viewModel.alamatController.text.isEmpty) {
+                      Utils.showErrorSnackBar(
+                        Overlay.of(context),
+                        "Data Tidak Boleh Kosong",
+                      );
+                    } else {
+                      // Semua field terisi, maka dapat melanjutkan
+                      await viewModel.simpanPembeli(context);
+                      viewModel.clearAllControllers();
+                      Navigator.pop(
+                          context); // Tutup dialog setelah mendapatkan lat-long
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF215CA8),
@@ -438,9 +453,29 @@ class _RekapScreenState extends State<RekapScreen> {
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton(
-                        onPressed: () {
-                          // Tambahkan logika untuk menyimpan atau mengupdate alamat
-                          Navigator.pop(context);
+                        onPressed: () async {
+                          // Periksa apakah ada yang kosong
+                          if (viewModel.dusunController.text.isEmpty ||
+                              viewModel.rtController.text.isEmpty ||
+                              viewModel.rwController.text.isEmpty ||
+                              viewModel.jalanController.text.isEmpty ||
+                              viewModel.desaController.text.isEmpty ||
+                              viewModel.kecamatanController.text.isEmpty ||
+                              viewModel.kabupatenController.text.isEmpty) {
+                            Utils.showErrorSnackBar(
+                              Overlay.of(context),
+                              "Ganti Bagian Kosong Dengan (-)",
+                            );
+                          } else {
+                            // Semua field terisi, maka dapat melanjutkan
+                            await viewModel.getLatlongPembeli();
+                            Utils.showSuccessSnackBar(
+                              Overlay.of(context),
+                              "Alamat Berhasil Disimpan",
+                            ); // Tunggu sampai mendapatkan lat-long
+                            Navigator.pop(
+                                context); // Tutup dialog setelah mendapatkan lat-long
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF215CA8),

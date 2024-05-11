@@ -3,6 +3,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import 'package:godus/models/alamat_penjual_model.dart';
 import 'package:godus/models/muatan_model.dart';
+import 'package:godus/models/alamat_pembeli_model.dart';
+import 'package:godus/models/rekap.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -264,5 +266,60 @@ class DatabaseHelper {
       );
     }
     return null;
+  }
+
+  // New method to insert Alamat Pembeli
+  Future<void> insertAlamatPembeli(AlamatPembeli alamat) async {
+    final db = await database;
+    await db.insert('alamat_pembeli', alamat.toMap());
+  }
+
+  Future<int?> getAlamatPembeliId(AlamatPembeli alamat) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'alamat_pembeli',
+      columns: ['id'],
+      where:
+          'dusun = ? AND jalan = ? AND rt = ? AND rw = ? AND desa = ? AND kecamatan = ? AND kabupaten = ? AND latitude = ? AND longitude = ?',
+      whereArgs: [
+        alamat.dusun,
+        alamat.jalan,
+        alamat.rt,
+        alamat.rw,
+        alamat.desa,
+        alamat.kecamatan,
+        alamat.kabupaten,
+        alamat.latitude,
+        alamat.longitude,
+      ],
+    );
+
+    if (result.isNotEmpty) {
+      return result.first['id'] as int?;
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> insertRekap(Rekap rekap) async {
+    final db = await database;
+    await db.insert(
+      'rekap',
+      rekap.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<bool> checkRekapExists(int idAlamatPembeli, String namaPembeli,
+      String tanggalPengantaran) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.query(
+      'rekap',
+      where:
+          'FK_id_alamat_pembeli = ? AND nama_pembeli = ? AND tanggal_pengantaran = ?',
+      whereArgs: [idAlamatPembeli, namaPembeli, tanggalPengantaran],
+    );
+
+    return result.isNotEmpty;
   }
 }
