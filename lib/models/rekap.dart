@@ -19,6 +19,21 @@ class Rekap {
     this.harga,
   });
 
+  // Method factory untuk membuat objek Rekap dari Map
+  factory Rekap.fromMap(Map<String, dynamic> map) {
+    return Rekap(
+      id: map['id_rekap'],
+      idAlamatPembeli: map['FK_id_alamat_pembeli'],
+      idStatusPengantaran: map['FK_status_pengantaran'],
+      namaPembeli: map['nama_pembeli'],
+      tanggalPengantaran:
+          DateFormat('dd-MM-yyyy').parse(map['tanggal_pengantaran']),
+      jumlahKambing: map['jumlah_kambing'],
+      harga: map['harga'],
+    );
+  }
+
+  // Method untuk mengubah objek Rekap menjadi Map
   Map<String, dynamic> toMap() {
     // Format tanggal menjadi string sebelum dimasukkan ke dalam map
     String formattedDate =

@@ -49,13 +49,13 @@ class _AlamatScreenState extends State<AlamatScreen> {
             child: Center(
               child: Image.asset(
                 'assets/initbg.png',
-                width: screenWidth * 1.2142857143,
-                height: screenHeight * 0.8307692308,
+                width: screenWidth * 1.2542857143,
+                height: screenHeight * 0.8707692308,
               ),
             ),
           ),
           Positioned(
-            top: 80,
+            top: screenHeight * 0.092288117,
             left: 40,
             child: Center(
               child: Image.asset(
@@ -115,11 +115,12 @@ class _AlamatScreenState extends State<AlamatScreen> {
                           backgroundColor: const Color(0xFF215CA8),
                           elevation: 8, // Warna latar belakang putih
                         ),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.symmetric(
                               vertical: 10.0,
-                              horizontal: 60.0), // Tambahkan padding di sini
-                          child: Text(
+                              horizontal: screenWidth *
+                                  0.145727273), // Tambahkan padding di sini
+                          child: const Text(
                             'SIMPAN',
                             style: TextStyle(
                               color: Color(0xFFFFFFFF),

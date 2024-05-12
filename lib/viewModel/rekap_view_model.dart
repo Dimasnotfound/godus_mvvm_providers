@@ -186,4 +186,12 @@ class RekapViewModel with ChangeNotifier {
 
     // Buat method-method lain sesuai kebutuhan aplikasi Anda
   }
+
+  Future<List<Rekap>> getDataByMonth(int month) async {
+    final dbHelper = DatabaseHelper();
+    final dataByMonth = await dbHelper.getDataByMonth(month);
+    print(dataByMonth);
+
+    return dataByMonth;
+  }
 }

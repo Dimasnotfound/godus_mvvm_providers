@@ -322,4 +322,18 @@ class DatabaseHelper {
 
     return result.isNotEmpty;
   }
+
+  Future<List<Rekap>> getDataByMonth(int month) async {
+    final db = await database;
+
+    // Format bulan dengan angka menjadi dua digit, misalnya 01 untuk Januari
+    String formattedMonth = month.toString().padLeft(2, '0');
+
+    final List<Map<String, dynamic>> result = await db.rawQuery('''
+    SELECT * FROM rekap
+    WHERE SUBSTR(tanggal_pengantaran, 4, 2) = ?
+  ''', ['$formattedMonth']);
+
+    return result.map((item) => Rekap.fromMap(item)).toList();
+  }
 }

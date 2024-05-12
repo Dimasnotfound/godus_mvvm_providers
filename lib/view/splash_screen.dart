@@ -52,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 style: ButtonStyle(
                   elevation: MaterialStateProperty.all<double>(8),
                   backgroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xFFD9D9D9)),
+                      MaterialStateProperty.all<Color>(const Color(0xFFFFFFFF)),
                 ),
                 onPressed: () {
                   // print(screenWidth);

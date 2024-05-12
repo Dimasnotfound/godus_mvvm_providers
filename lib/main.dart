@@ -9,13 +9,19 @@ import 'package:godus/viewModel/init_alamat_view_model.dart';
 import 'package:godus/viewModel/rekap_view_model.dart';
 import 'package:godus/data/database/dbhelper.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await DatabaseHelper().database;
-  final dbHelper = DatabaseHelper(); // Buat instance DatabaseHelper
+  final dbHelper = DatabaseHelper();
   await dbHelper.database;
-  runApp(const MyApp());
+  initializeDateFormatting('id_ID', null).then((_) {
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {

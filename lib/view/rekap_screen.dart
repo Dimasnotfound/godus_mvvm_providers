@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_expanded_tile/flutter_expanded_tile.dart';
 import 'package:intl/intl.dart';
 import 'package:godus/viewModel/rekap_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:godus/utils/utils.dart';
+import 'package:godus/models/rekap.dart';
 
 class RekapScreen extends StatefulWidget {
   const RekapScreen({super.key});
@@ -13,13 +16,14 @@ class RekapScreen extends StatefulWidget {
 }
 
 class _RekapScreenState extends State<RekapScreen> {
-  late ExpandedTileController _controller;
+  late List<ExpandedTileController> _controllers;
   // TextEditingController _dateController = TextEditingController();
 
   @override
   void initState() {
     // initialize controller
-    _controller = ExpandedTileController(isExpanded: false);
+    _controllers =
+        List.generate(12, (index) => ExpandedTileController(isExpanded: false));
     super.initState();
   }
 
@@ -42,33 +46,101 @@ class _RekapScreenState extends State<RekapScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16.0),
                     child: ExpandedTile(
-                      controller: _controller,
+                      controller: _controllers[i - 1],
                       trailing: const Icon(
                         Icons.chevron_right,
                         color: Colors.white,
                       ),
                       theme: const ExpandedTileThemeData(
-                        headerColor: Color.fromARGB(255, 44, 116, 209),
+                        headerColor: Color.fromARGB(255, 39, 95, 168),
                         headerRadius: 24.0,
                         headerPadding: EdgeInsets.all(22.0),
                         headerSplashColor: Color(0xFF215CA8),
-                        contentBackgroundColor: Colors.blue,
+                        contentBackgroundColor:
+                            Color.fromARGB(255, 44, 116, 209),
                         contentPadding: EdgeInsets.all(24.0),
                         contentRadius: 12.0,
                       ),
-                      title: Text(
-                        "Bulan $i",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      title: Container(
+                        alignment: Alignment.center,
+                        child: Text(
+                          DateFormat('MMMM', 'id_ID')
+                              .format(DateTime(2022, i))
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      content: Container(
-                        color: Colors.transparent,
-                        child: const Center(
-                          child: Text("This is the content!"),
-                        ),
+                      content: FutureBuilder<List<Rekap>>(
+                        future: viewModel.getDataByMonth(i),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text("Error: ${snapshot.error}");
+                          } else if (snapshot.data!.isEmpty) {
+                            return const Text("Data rekap tidak ada");
+                          } else {
+                            return DataTable(
+                              columns: const [
+                                DataColumn(
+                                    label: Text('No',
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                                DataColumn(
+                                    label: Text('Nama',
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                                DataColumn(
+                                    label: Text('Harga',
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                                DataColumn(
+                                    label: Text('Status',
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                              ],
+                              rows: snapshot.data!.map((rekap) {
+                                int index = 0;
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(
+                                      (++index).toString(),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white,
+                                      ),
+                                    )),
+                                    DataCell(Text(rekap.namaPembeli!,
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                                    DataCell(Text(
+                                        rekap.harga != null
+                                            ? 'Rp${NumberFormat.decimalPattern().format(rekap.harga!)}'
+                                            : '',
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                                    DataCell(Text(
+                                        rekap.idStatusPengantaran.toString(),
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white))),
+                                  ],
+                                );
+                              }).toList(),
+                            );
+                          }
+                        },
                       ),
                       onTap: () {
                         debugPrint("tapped!!");
@@ -128,7 +200,7 @@ class _RekapScreenState extends State<RekapScreen> {
           ),
         ),
         padding: const EdgeInsets.all(16.0),
-        height: screenHeight * 0.576,
+        height: screenHeight * 0.776,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -307,10 +379,10 @@ class _RekapScreenState extends State<RekapScreen> {
                     backgroundColor: Colors.grey,
                     elevation: 8,
                   ),
-                  child: const Padding(
-                    padding:
-                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
-                    child: Text(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: screenWidth * 0.060772727),
+                    child: const Text(
                       'BATAL',
                       style: TextStyle(
                         color: Color(0xFFFFFFFF),
@@ -338,18 +410,19 @@ class _RekapScreenState extends State<RekapScreen> {
                       // Semua field terisi, maka dapat melanjutkan
                       await viewModel.simpanPembeli(context);
                       viewModel.clearAllControllers();
-                      Navigator.pop(
-                          context); // Tutup dialog setelah mendapatkan lat-long
+                      Navigator.pop(context);
+                      setState(
+                          () {}); // Tutup dialog setelah mendapatkan lat-long
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF215CA8),
                     elevation: 8,
                   ),
-                  child: const Padding(
-                    padding:
-                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 25.0),
-                    child: Text(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: screenWidth * 0.060772727),
+                    child: const Text(
                       'SIMPAN',
                       style: TextStyle(
                         color: Color(0xFFFFFFFF),
@@ -389,6 +462,8 @@ class _RekapScreenState extends State<RekapScreen> {
 
   void _showAlamatWidget(BuildContext context) {
     final viewModel = Provider.of<RekapViewModel>(context, listen: false);
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     showDialog(
       context: context,
@@ -426,7 +501,7 @@ class _RekapScreenState extends State<RekapScreen> {
                   buildTextField(viewModel.kabupatenController, "Kabupaten"),
                   const SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton(
                         onPressed: () {
@@ -437,14 +512,15 @@ class _RekapScreenState extends State<RekapScreen> {
                           backgroundColor: Colors.grey,
                           elevation: 8,
                         ),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 15.0),
+                              vertical: screenHeight * 0.011547619,
+                              horizontal: screenWidth * 0.0265),
                           child: Text(
                             'BATAL',
                             style: TextStyle(
-                              color: Color(0xFFFFFFFF),
-                              fontSize: 18,
+                              color: const Color(0xFFFFFFFF),
+                              fontSize: screenWidth * 0.0337,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w600,
                             ),
@@ -481,14 +557,15 @@ class _RekapScreenState extends State<RekapScreen> {
                           backgroundColor: const Color(0xFF215CA8),
                           elevation: 8,
                         ),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 15.0),
+                              vertical: screenHeight * 0.011547619,
+                              horizontal: screenWidth * 0.0265),
                           child: Text(
                             'SIMPAN',
                             style: TextStyle(
-                              color: Color(0xFFFFFFFF),
-                              fontSize: 18,
+                              color: const Color(0xFFFFFFFF),
+                              fontSize: screenWidth * 0.0337,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w600,
                             ),

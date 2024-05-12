@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           Positioned(
-            top: 120,
+            top: screenHeight * 0.138408778,
             left: 0,
             child: Center(
               child: Image.asset(
@@ -74,8 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
             left: 0,
             child: Image.asset(
               'assets/eclipse_login_bottom.png', // Ubah dengan path gambar Anda
-              // Sesuaikan tinggi gambar sesuai kebutuhan
-              fit: BoxFit.cover, // Sesuaikan dengan kebutuhan
             ),
           ),
           SafeArea(
@@ -85,7 +83,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 150), // Beri jarak dari atas
+                  SizedBox(
+                      height:
+                          screenHeight * 0.173196688), // Beri jarak dari atas
                   Padding(
                     padding: const EdgeInsets.all(8),
                     child: Column(
@@ -243,11 +243,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           backgroundColor: const Color(0xFF215CA8),
                           elevation: 8, // Warna latar belakang putih
                         ),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.symmetric(
                               vertical: 10.0,
-                              horizontal: 90.0), // Tambahkan padding di sini
-                          child: Text(
+                              horizontal: screenWidth *
+                                  0.218570357), // Tambahkan padding di sini
+                          child: const Text(
                             'LOGIN',
                             style: TextStyle(
                               color: Color(0xFFFFFFFF),
