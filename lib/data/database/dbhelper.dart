@@ -332,8 +332,47 @@ class DatabaseHelper {
     final List<Map<String, dynamic>> result = await db.rawQuery('''
     SELECT * FROM rekap
     WHERE SUBSTR(tanggal_pengantaran, 4, 2) = ?
-  ''', ['$formattedMonth']);
+  ''', [formattedMonth]);
 
     return result.map((item) => Rekap.fromMap(item)).toList();
+  }
+
+  Future<bool> updateStatusPengantaran(int rekapId) async {
+    final db = await database;
+    int rowsAffected = await db.rawUpdate('''
+    UPDATE rekap
+    SET FK_status_pengantaran = ?
+    WHERE id_rekap = ?
+  ''', [2, rekapId]);
+
+    return rowsAffected > 0;
+  }
+
+  Future<Rekap?> getRekapById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> rekapList = await db.query(
+      'rekap',
+      where: 'id_rekap = ?',
+      whereArgs: [id],
+    );
+
+    if (rekapList.isNotEmpty) {
+      return Rekap.fromMap(rekapList.first);
+    }
+    return null;
+  }
+
+  Future<AlamatPembeli?> getAlamatPembeliById(int? idAlamatPembeli) async {
+    final db = await database;
+    final List<Map<String, dynamic>> alamatPembeliList = await db.query(
+      'alamat_pembeli',
+      where: 'id = ?',
+      whereArgs: [idAlamatPembeli],
+    );
+
+    if (alamatPembeliList.isNotEmpty) {
+      return AlamatPembeli.fromMap(alamatPembeliList.first);
+    }
+    return null;
   }
 }

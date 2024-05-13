@@ -7,6 +7,7 @@ import 'package:godus/viewModel/rekap_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:godus/utils/utils.dart';
 import 'package:godus/models/rekap.dart';
+import 'package:panara_dialogs/panara_dialogs.dart';
 
 class RekapScreen extends StatefulWidget {
   const RekapScreen({super.key});
@@ -83,61 +84,188 @@ class _RekapScreenState extends State<RekapScreen> {
                           } else if (snapshot.hasError) {
                             return Text("Error: ${snapshot.error}");
                           } else if (snapshot.data!.isEmpty) {
-                            return const Text("Data rekap tidak ada");
+                            return const Text(
+                              "Data rekap tidak ada",
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.white),
+                            );
                           } else {
-                            return DataTable(
-                              columns: const [
-                                DataColumn(
-                                    label: Text('No',
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white))),
-                                DataColumn(
-                                    label: Text('Nama',
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white))),
-                                DataColumn(
-                                    label: Text('Harga',
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white))),
-                                DataColumn(
-                                    label: Text('Status',
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white))),
-                              ],
-                              rows: snapshot.data!.map((rekap) {
-                                int index = 0;
-                                return DataRow(
-                                  cells: [
-                                    DataCell(Text(
-                                      (++index).toString(),
-                                      style: const TextStyle(
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                columns: const [
+                                  DataColumn(
+                                    label: Text(
+                                      'No',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                         fontSize: 13,
                                         color: Colors.white,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    )),
-                                    DataCell(Text(rekap.namaPembeli!,
-                                        style: const TextStyle(
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Nama',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Harga',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Status Pengantaran',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      'Edit',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                rows:
+                                    snapshot.data!.asMap().entries.map((entry) {
+                                  final int index = entry.key + 1;
+                                  final Rekap rekap = entry.value;
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(
+                                        Text(
+                                          index.toString(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
                                             fontSize: 13,
-                                            color: Colors.white))),
-                                    DataCell(Text(
-                                        rekap.harga != null
-                                            ? 'Rp${NumberFormat.decimalPattern().format(rekap.harga!)}'
-                                            : '',
-                                        style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          rekap.namaPembeli ?? '',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
                                             fontSize: 13,
-                                            color: Colors.white))),
-                                    DataCell(Text(
-                                        rekap.idStatusPengantaran.toString(),
-                                        style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          rekap.harga != null
+                                              ? 'Rp${NumberFormat.decimalPattern().format(rekap.harga!)}'
+                                              : '',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
                                             fontSize: 13,
-                                            color: Colors.white))),
-                                  ],
-                                );
-                              }).toList(),
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Container(
+                                          alignment: Alignment.center,
+                                          child: ElevatedButton(
+                                            onPressed: rekap
+                                                        .idStatusPengantaran ==
+                                                    1
+                                                ? () async {
+                                                    PanaraConfirmDialog
+                                                        .showAnimatedGrow(
+                                                      context,
+                                                      title: "Konfirmasi",
+                                                      message:
+                                                          "Apakah Anda Ingin Mengubah Status Pengantaran?",
+                                                      confirmButtonText: "Iya",
+                                                      cancelButtonText: "Tidak",
+                                                      onTapCancel: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      onTapConfirm: () async {
+                                                        await viewModel
+                                                            .ubahStatusPengantaran(
+                                                                context,
+                                                                rekap.id!);
+                                                        Navigator.pop(context);
+                                                        setState(() {});
+                                                      },
+                                                      panaraDialogType:
+                                                          PanaraDialogType
+                                                              .normal,
+                                                    );
+                                                  }
+                                                : null, // Tidak ada fungsi onPressed jika status sudah "Done"
+                                            style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateProperty
+                                                      .resolveWith<Color>(
+                                                (states) {
+                                                  // Periksa nilai status pengantaran dan atur warna latar belakang sesuai
+                                                  if (rekap
+                                                          .idStatusPengantaran ==
+                                                      1) {
+                                                    return Colors
+                                                        .red; // Jika status 1, warna merah
+                                                  } else {
+                                                    return Colors
+                                                        .green; // Jika status 2, warna hijau
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            child: Text(
+                                              rekap.idStatusPengantaran == 1
+                                                  ? 'On Going'
+                                                  : 'Done',
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        IconButton(
+                                          onPressed: () {
+                                            _showModalBottomSheetEdit(
+                                                context, rekap.id!);
+                                          },
+                                          icon: const Icon(Icons.edit),
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
                             );
                           }
                         },
@@ -610,6 +738,418 @@ class _RekapScreenState extends State<RekapScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // MODAL Sheet EDIT
+
+  void _showModalBottomSheetEdit(BuildContext context, int id) {
+    final viewModel = Provider.of<RekapViewModel>(context, listen: false);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return _buildBottomSheetContentEdit(context, viewModel, id);
+      },
+    );
+  }
+
+  Widget _buildBottomSheetContentEdit(
+      BuildContext context, RekapViewModel viewModel, int id) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+    viewModel.getDataPembeli(id);
+    return SingleChildScrollView(
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFDADADA),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16.0),
+            topRight: Radius.circular(16.0),
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        height: screenHeight * 0.776,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const Text(
+              'Tambah Pembeli',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 20,
+                color: Color(0xFF4D4D4D),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: viewModel.namaPembeliEditController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(
+                  Icons.person,
+                  color: Color(0xFF4D4D4D),
+                ),
+                labelText: 'Nama Pembeli',
+                labelStyle: const TextStyle(
+                  color: Color(0xFF4D4D4D),
+                  fontFamily: 'Poppins',
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 1.5, // Warna border saat tidak aktif
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 2.5, // Warna border saat aktif
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: viewModel.jumlahKambingEditController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                prefixIcon: Image.asset(
+                  'assets/YoaG.png', // Ganti dengan path gambar Anda
+                  width: screenWidth * 0.0558, // Ganti dengan lebar yang sesuai
+                  height:
+                      screenHeight * 0.0427, // Ganti dengan tinggi yang sesuai
+                ),
+                labelText: 'Jumlah Kambing',
+                labelStyle: const TextStyle(
+                  color: Color(0xFF4D4D4D),
+                  fontFamily: 'Poppins',
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 1.5, // Warna border saat tidak aktif
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 2.5, // Warna border saat aktif
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              keyboardType: TextInputType.number,
+              controller: viewModel.hargaEditController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(
+                  Icons.attach_money,
+                  color: Color(0xFF4D4D4D),
+                ),
+                labelText: 'Harga',
+                labelStyle: const TextStyle(
+                  color: Color(0xFF4D4D4D),
+                  fontFamily: 'Poppins',
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 1.5, // Warna border saat tidak aktif
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 2.5, // Warna border saat aktif
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              readOnly: true,
+              controller: viewModel.tanggalEditController,
+              onTap: () {
+                _selectDateEdit(context);
+              },
+              decoration: InputDecoration(
+                prefixIcon: const Icon(
+                  Icons.calendar_today,
+                  color: Color(0xFF4D4D4D),
+                ),
+                labelText: 'Tanggal',
+                labelStyle: const TextStyle(
+                  color: Color(0xFF4D4D4D),
+                  fontFamily: 'Poppins',
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 2.5,
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              readOnly: true,
+              controller: viewModel.alamatEditController,
+              onTap: () {
+                _showAlamatWidgetEdit(context);
+              },
+              decoration: InputDecoration(
+                prefixIcon: const Icon(
+                  Icons.location_on,
+                  color: Color(0xFF4D4D4D),
+                ),
+                hintText: 'Alamat',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 1.5, // Warna border saat tidak aktif
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFA7A7A7),
+                    width: 2.5, // Warna border saat aktif
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // viewModel.clearAllControllers();
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey,
+                    elevation: 8,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: screenWidth * 0.060772727),
+                    child: const Text(
+                      'BATAL',
+                      style: TextStyle(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 18,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () async {
+                    // // Periksa apakah ada yang kosong
+                    // if (viewModel.namaPembeliController.text.isEmpty ||
+                    //     viewModel.jumlahKambingController.text.isEmpty ||
+                    //     viewModel.hargaController.text.isEmpty ||
+                    //     viewModel.tanggalController.text.isEmpty ||
+                    //     viewModel.alamatController.text.isEmpty) {
+                    //   Utils.showErrorSnackBar(
+                    //     Overlay.of(context),
+                    //     "Data Tidak Boleh Kosong",
+                    //   );
+                    // } else {
+                    //   // Semua field terisi, maka dapat melanjutkan
+                    //   await viewModel.simpanPembeli(context);
+                    //   // viewModel.clearAllControllers();
+                    //   Navigator.pop(context);
+                    //   setState(
+                    //       () {}); // Tutup dialog setelah mendapatkan lat-long
+                    // }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF215CA8),
+                    elevation: 8,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: screenWidth * 0.060772727),
+                    child: const Text(
+                      'SIMPAN',
+                      style: TextStyle(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 18,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDateEdit(BuildContext context) async {
+    final viewModel = Provider.of<RekapViewModel>(context, listen: false);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (picked != null) {
+      // Format tanggal yang dipilih dengan format 'dd-MM-yyyy'
+      String formattedDate = DateFormat('dd-MM-yyyy').format(picked);
+
+      // Menetapkan nilai tanggal yang dipilih dengan format yang diinginkan ke dalam controller
+      viewModel.tanggalEditController.text = formattedDate;
+    }
+  }
+
+  void _showAlamatWidgetEdit(BuildContext context) {
+    final viewModel = Provider.of<RekapViewModel>(context, listen: false);
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.8, // lebar dialog
+            padding: const EdgeInsets.all(20.0),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Flexible(
+                        flex: 2,
+                        child: buildTextField(
+                            viewModel.dusunEditController, "Dusun"),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: buildTextField(viewModel.rtEditController, "RT"),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: buildTextField(viewModel.rwEditController, "RW"),
+                      ),
+                    ],
+                  ),
+                  buildTextField(viewModel.jalanEditController, "Jalan"),
+                  buildTextField(viewModel.desaEditController, "Desa"),
+                  buildTextField(
+                      viewModel.kecamatanEditController, "Kecamatan"),
+                  buildTextField(
+                      viewModel.kabupatenEditController, "Kabupaten"),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          // viewModel.clearAlamatControllers();
+                          // Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey,
+                          elevation: 8,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: screenHeight * 0.011547619,
+                              horizontal: screenWidth * 0.0265),
+                          child: Text(
+                            'BATAL',
+                            style: TextStyle(
+                              color: const Color(0xFFFFFFFF),
+                              fontSize: screenWidth * 0.0337,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: () async {
+                          // // Periksa apakah ada yang kosong
+                          // if (viewModel.dusunController.text.isEmpty ||
+                          //     viewModel.rtController.text.isEmpty ||
+                          //     viewModel.rwController.text.isEmpty ||
+                          //     viewModel.jalanController.text.isEmpty ||
+                          //     viewModel.desaController.text.isEmpty ||
+                          //     viewModel.kecamatanController.text.isEmpty ||
+                          //     viewModel.kabupatenController.text.isEmpty) {
+                          //   Utils.showErrorSnackBar(
+                          //     Overlay.of(context),
+                          //     "Ganti Bagian Kosong Dengan (-)",
+                          //   );
+                          // } else {
+                          //   // Semua field terisi, maka dapat melanjutkan
+                          //   await viewModel.getLatlongPembeli();
+                          //   Utils.showSuccessSnackBar(
+                          //     Overlay.of(context),
+                          //     "Alamat Berhasil Disimpan",
+                          //   ); // Tunggu sampai mendapatkan lat-long
+                          //   Navigator.pop(
+                          //       context); // Tutup dialog setelah mendapatkan lat-long
+                          // }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF215CA8),
+                          elevation: 8,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: screenHeight * 0.011547619,
+                              horizontal: screenWidth * 0.0265),
+                          child: Text(
+                            'SIMPAN',
+                            style: TextStyle(
+                              color: const Color(0xFFFFFFFF),
+                              fontSize: screenWidth * 0.0337,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

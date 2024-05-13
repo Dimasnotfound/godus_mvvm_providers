@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:godus/data/network/networks.dart';
 import 'package:godus/data/database/dbhelper.dart';
@@ -20,6 +22,20 @@ class RekapViewModel with ChangeNotifier {
   TextEditingController desaController = TextEditingController();
   TextEditingController kecamatanController = TextEditingController();
   TextEditingController kabupatenController = TextEditingController();
+
+  // SUFFIX EDIT
+  TextEditingController namaPembeliEditController = TextEditingController();
+  TextEditingController jumlahKambingEditController = TextEditingController();
+  TextEditingController hargaEditController = TextEditingController();
+  TextEditingController tanggalEditController = TextEditingController();
+  TextEditingController alamatEditController = TextEditingController();
+  TextEditingController dusunEditController = TextEditingController();
+  TextEditingController rtEditController = TextEditingController();
+  TextEditingController rwEditController = TextEditingController();
+  TextEditingController jalanEditController = TextEditingController();
+  TextEditingController desaEditController = TextEditingController();
+  TextEditingController kecamatanEditController = TextEditingController();
+  TextEditingController kabupatenEditController = TextEditingController();
 
   // Method untuk membersihkan kontroller saat tidak digunakan
   void disposeControllers() {
@@ -190,8 +206,108 @@ class RekapViewModel with ChangeNotifier {
   Future<List<Rekap>> getDataByMonth(int month) async {
     final dbHelper = DatabaseHelper();
     final dataByMonth = await dbHelper.getDataByMonth(month);
-    print(dataByMonth);
+    // print(dataByMonth);
 
     return dataByMonth;
+  }
+
+  Future<void> ubahStatusPengantaran(BuildContext context, int rekapId) async {
+    final dbHelper = DatabaseHelper();
+    final success = await dbHelper.updateStatusPengantaran(rekapId);
+    if (success) {
+      Utils.showSuccessSnackBar(
+        Overlay.of(context),
+        "Status Berhasil Diubah",
+      );
+    } else {
+      Utils.showErrorSnackBar(
+        Overlay.of(context),
+        "Status Gagal Diubah",
+      );
+    }
+  }
+
+  String? _previousNamaPembeli = '';
+  String? _previousJumlahKambing = '';
+  String? _previousHarga = '';
+  String? _previousTanggal = '';
+  String? _previousAlamat = '';
+  String? _previousDusun = '';
+  String? _previousRT = '';
+  String? _previousRW = '';
+  String? _previousJalan = '';
+  String? _previousDesa = '';
+  String? _previousKecamatan = '';
+  String? _previousKabupaten = '';
+
+  Future<void> getDataPembeli(int id) async {
+    Rekap? rekap = await DatabaseHelper().getRekapById(id);
+
+    if (rekap != null) {
+      AlamatPembeli? alamatPembeli =
+          await DatabaseHelper().getAlamatPembeliById(rekap.idAlamatPembeli);
+
+      // Memasukkan data dari rekap ke dalam controller edit jika tidak ada isian
+      if (_previousNamaPembeli != rekap.namaPembeli) {
+        namaPembeliEditController.text = rekap.namaPembeli ?? '';
+        _previousNamaPembeli = rekap.namaPembeli;
+      }
+      if (_previousJumlahKambing != rekap.jumlahKambing.toString()) {
+        jumlahKambingEditController.text = rekap.jumlahKambing.toString();
+        _previousJumlahKambing = rekap.jumlahKambing.toString();
+      }
+      if (_previousHarga != rekap.harga.toString()) {
+        hargaEditController.text = rekap.harga.toString();
+        _previousHarga = rekap.harga.toString();
+      }
+      if (_previousTanggal != rekap.tanggalPengantaran.toString()) {
+        final formattedDate = rekap.tanggalPengantaran != null
+            ? DateFormat('dd-MM-yyyy').format(rekap.tanggalPengantaran!)
+            : '';
+        tanggalEditController.text = formattedDate;
+        _previousTanggal = formattedDate;
+      }
+
+      if (alamatPembeli != null) {
+        final alamatString =
+            'Lat: ${alamatPembeli.latitude ?? 0}, Lng: ${alamatPembeli.longitude ?? 0}';
+        if (_previousAlamat != alamatString) {
+          alamatEditController.text = alamatString;
+          _previousAlamat = alamatString;
+        }
+
+        // Memasukkan data dari alamat pembeli ke dalam controller edit jika tidak ada isian
+        if (_previousDusun != alamatPembeli.dusun) {
+          dusunEditController.text = alamatPembeli.dusun ?? '';
+          _previousDusun = alamatPembeli.dusun;
+        }
+        if (_previousRT != alamatPembeli.rt) {
+          rtEditController.text = alamatPembeli.rt ?? '';
+          _previousRT = alamatPembeli.rt;
+        }
+        if (_previousRW != alamatPembeli.rw) {
+          rwEditController.text = alamatPembeli.rw ?? '';
+          _previousRW = alamatPembeli.rw;
+        }
+        if (_previousJalan != alamatPembeli.jalan) {
+          jalanEditController.text = alamatPembeli.jalan ?? '';
+          _previousJalan = alamatPembeli.jalan;
+        }
+        if (_previousDesa != alamatPembeli.desa) {
+          desaEditController.text = alamatPembeli.desa ?? '';
+          _previousDesa = alamatPembeli.desa;
+        }
+        if (_previousKecamatan != alamatPembeli.kecamatan) {
+          kecamatanEditController.text = alamatPembeli.kecamatan ?? '';
+          _previousKecamatan = alamatPembeli.kecamatan;
+        }
+        if (_previousKabupaten != alamatPembeli.kabupaten) {
+          kabupatenEditController.text = alamatPembeli.kabupaten ?? '';
+          _previousKabupaten = alamatPembeli.kabupaten;
+        }
+      }
+    } else {
+      // Penanganan jika data rekap tidak ditemukan
+    }
   }
 }

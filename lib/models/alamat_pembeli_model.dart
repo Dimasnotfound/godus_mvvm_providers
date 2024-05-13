@@ -38,6 +38,21 @@ class AlamatPembeli {
     );
   }
 
+  factory AlamatPembeli.fromMap(Map<String, dynamic> map) {
+    return AlamatPembeli(
+      id: map['id'],
+      dusun: map['dusun'],
+      rt: map['rt'],
+      rw: map['rw'],
+      jalan: map['jalan'],
+      desa: map['desa'],
+      kecamatan: map['kecamatan'],
+      kabupaten: map['kabupaten'],
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
