@@ -939,19 +939,36 @@ class _RekapScreenState extends State<RekapScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    PanaraConfirmDialog.showAnimatedGrow(
+                      context,
+                      title: "Konfirmasi",
+                      message: "Apakah Anda Yakin Ingin Menghapus Data?",
+                      confirmButtonText: "Yakin",
+                      cancelButtonText: "Tidak",
+                      onTapCancel: () {
+                        Navigator.pop(context);
+                      },
+                      onTapConfirm: () async {
+                        await viewModel.hapusDataRekap(context, id);
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        setState(() {});
+                      },
+                      panaraDialogType: PanaraDialogType.custom,
+                      color: Colors.red,
+                    );
                     // viewModel.clearAllControllers();
-                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey,
+                    backgroundColor: Colors.red,
                     elevation: 8,
                   ),
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                         vertical: 10.0, horizontal: screenWidth * 0.060772727),
                     child: const Text(
-                      'BATAL',
+                      'HAPUS',
                       style: TextStyle(
                         color: Color(0xFFFFFFFF),
                         fontSize: 18,
@@ -964,24 +981,23 @@ class _RekapScreenState extends State<RekapScreen> {
                 const SizedBox(width: 10),
                 ElevatedButton(
                   onPressed: () async {
-                    // // Periksa apakah ada yang kosong
-                    // if (viewModel.namaPembeliController.text.isEmpty ||
-                    //     viewModel.jumlahKambingController.text.isEmpty ||
-                    //     viewModel.hargaController.text.isEmpty ||
-                    //     viewModel.tanggalController.text.isEmpty ||
-                    //     viewModel.alamatController.text.isEmpty) {
-                    //   Utils.showErrorSnackBar(
-                    //     Overlay.of(context),
-                    //     "Data Tidak Boleh Kosong",
-                    //   );
-                    // } else {
-                    //   // Semua field terisi, maka dapat melanjutkan
-                    //   await viewModel.simpanPembeli(context);
-                    //   // viewModel.clearAllControllers();
-                    //   Navigator.pop(context);
-                    //   setState(
-                    //       () {}); // Tutup dialog setelah mendapatkan lat-long
-                    // }
+                    // Periksa apakah ada yang kosong
+                    if (viewModel.namaPembeliEditController.text.isEmpty ||
+                        viewModel.jumlahKambingEditController.text.isEmpty ||
+                        viewModel.hargaEditController.text.isEmpty ||
+                        viewModel.tanggalEditController.text.isEmpty ||
+                        viewModel.alamatEditController.text.isEmpty) {
+                      Utils.showErrorSnackBar(
+                        Overlay.of(context),
+                        "Data Tidak Boleh Kosong",
+                      );
+                    } else {
+                      // Semua field terisi, maka dapat melanjutkan
+                      await viewModel.updateRekap(context, id);
+                      // viewModel.clearAllControllers();
+                      Navigator.pop(context);
+                      setState(() {});
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF215CA8),
@@ -991,7 +1007,7 @@ class _RekapScreenState extends State<RekapScreen> {
                     padding: EdgeInsets.symmetric(
                         vertical: 10.0, horizontal: screenWidth * 0.060772727),
                     child: const Text(
-                      'SIMPAN',
+                      'EDIT',
                       style: TextStyle(
                         color: Color(0xFFFFFFFF),
                         fontSize: 18,
@@ -1076,7 +1092,7 @@ class _RekapScreenState extends State<RekapScreen> {
                       ElevatedButton(
                         onPressed: () {
                           // viewModel.clearAlamatControllers();
-                          // Navigator.pop(context);
+                          Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.grey,
@@ -1100,28 +1116,28 @@ class _RekapScreenState extends State<RekapScreen> {
                       const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () async {
-                          // // Periksa apakah ada yang kosong
-                          // if (viewModel.dusunController.text.isEmpty ||
-                          //     viewModel.rtController.text.isEmpty ||
-                          //     viewModel.rwController.text.isEmpty ||
-                          //     viewModel.jalanController.text.isEmpty ||
-                          //     viewModel.desaController.text.isEmpty ||
-                          //     viewModel.kecamatanController.text.isEmpty ||
-                          //     viewModel.kabupatenController.text.isEmpty) {
-                          //   Utils.showErrorSnackBar(
-                          //     Overlay.of(context),
-                          //     "Ganti Bagian Kosong Dengan (-)",
-                          //   );
-                          // } else {
-                          //   // Semua field terisi, maka dapat melanjutkan
-                          //   await viewModel.getLatlongPembeli();
-                          //   Utils.showSuccessSnackBar(
-                          //     Overlay.of(context),
-                          //     "Alamat Berhasil Disimpan",
-                          //   ); // Tunggu sampai mendapatkan lat-long
-                          //   Navigator.pop(
-                          //       context); // Tutup dialog setelah mendapatkan lat-long
-                          // }
+                          // Periksa apakah ada yang kosong
+                          if (viewModel.dusunEditController.text.isEmpty ||
+                              viewModel.rtEditController.text.isEmpty ||
+                              viewModel.rwEditController.text.isEmpty ||
+                              viewModel.jalanEditController.text.isEmpty ||
+                              viewModel.desaEditController.text.isEmpty ||
+                              viewModel.kecamatanEditController.text.isEmpty ||
+                              viewModel.kabupatenEditController.text.isEmpty) {
+                            Utils.showErrorSnackBar(
+                              Overlay.of(context),
+                              "Ganti Bagian Kosong Dengan (-)",
+                            );
+                          } else {
+                            // Semua field terisi, maka dapat melanjutkan
+                            await viewModel.getLatlongPembeliEdit();
+                            Utils.showSuccessSnackBar(
+                              Overlay.of(context),
+                              "Alamat Berhasil Disimpan",
+                            ); // Tunggu sampai mendapatkan lat-long
+                            Navigator.pop(
+                                context); // Tutup dialog setelah mendapatkan lat-long
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF215CA8),

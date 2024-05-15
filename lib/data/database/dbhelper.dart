@@ -375,4 +375,33 @@ class DatabaseHelper {
     }
     return null;
   }
+
+  Future<void> updateAlamatPembeli(AlamatPembeli alamat) async {
+    final db = await database;
+    await db.update(
+      'alamat_pembeli',
+      alamat.toMap(),
+      where: 'id = ?',
+      whereArgs: [alamat.id],
+    );
+  }
+
+  Future<void> updateRekap(Rekap rekap, int id) async {
+    final db = await database;
+    await db.update(
+      'rekap',
+      rekap.toMap(),
+      where: 'id_rekap = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteRekap(int id) async {
+    final db = await database;
+    await db.delete(
+      'rekap',
+      where: 'id_rekap = ?',
+      whereArgs: [id],
+    );
+  }
 }

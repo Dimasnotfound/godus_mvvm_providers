@@ -310,4 +310,121 @@ class RekapViewModel with ChangeNotifier {
       // Penanganan jika data rekap tidak ditemukan
     }
   }
+
+  Future<void> updateRekap(BuildContext context, int id) async {
+    final networkHelper = NetworkHelper();
+    final dbHelper = DatabaseHelper();
+
+    final rekap = await dbHelper.getRekapById(id);
+    if (rekap != null) {
+      // Perbarui data rekap dengan nilai yang diinputkan
+      rekap.namaPembeli = namaPembeliEditController.text;
+      rekap.jumlahKambing = int.parse(jumlahKambingEditController.text);
+      rekap.harga = double.parse(hargaEditController.text);
+      rekap.tanggalPengantaran =
+          DateFormat('dd-MM-yyyy').parse(tanggalEditController.text);
+
+      // Perbarui data rekap di database
+      await dbHelper.updateRekap(rekap, id);
+
+      final latLng = await networkHelper.getLatLngFromAddress(
+        dusun: dusunEditController.text,
+        jalan: jalanEditController.text,
+        rt: rtEditController.text,
+        rw: rwEditController.text,
+        desa: desaEditController.text,
+        kecamatan: kecamatanEditController.text,
+        kabupaten: kabupatenEditController.text,
+      );
+
+      final latitude = latLng['latitude'];
+      final longitude = latLng['longitude'];
+      final formattedLocation = 'Lat:$latitude, Lng:$longitude';
+
+      // Masukkan string ke dalam alamatController
+      alamatEditController.text = formattedLocation;
+
+      final alamat = AlamatPembeli(
+        id: rekap.idAlamatPembeli, // pastikan untuk menyertakan ID untuk update
+        dusun: dusunEditController.text,
+        rt: rtEditController.text,
+        rw: rwEditController.text,
+        jalan: jalanEditController.text,
+        desa: desaEditController.text,
+        kecamatan: kecamatanEditController.text,
+        kabupaten: kabupatenEditController.text,
+        latitude: latitude,
+        longitude: longitude,
+      );
+
+      // Update alamat pembeli
+      await dbHelper.updateAlamatPembeli(alamat);
+
+      // Tampilkan pesan sukses
+      Utils.showSuccessSnackBar(
+        Overlay.of(context),
+        "Data Berhasil Diubah",
+      );
+
+      // Bersihkan controller
+      // clearAllEditControllers();
+    }
+  }
+
+  // void clearAllEditControllers() {
+  //   namaPembeliEditController.clear();
+  //   jumlahKambingEditController.clear();
+  //   hargaEditController.clear();
+  //   tanggalEditController.clear();
+  //   alamatEditController.clear();
+  //   dusunEditController.clear();
+  //   rtEditController.clear();
+  //   rwEditController.clear();
+  //   jalanEditController.clear();
+  //   desaEditController.clear();
+  //   kecamatanEditController.clear();
+  //   kabupatenEditController.clear();
+  // }
+
+  Future<void> getLatlongPembeliEdit() async {
+    final networkHelper = NetworkHelper();
+
+    final latLng = await networkHelper.getLatLngFromAddress(
+      dusun: dusunEditController.text,
+      jalan: jalanEditController.text,
+      rt: rtEditController.text,
+      rw: rwEditController.text,
+      desa: desaEditController.text,
+      kecamatan: kecamatanEditController.text,
+      kabupaten: kabupatenEditController.text,
+    );
+
+    final latitude = latLng['latitude'];
+    final longitude = latLng['longitude'];
+    final formattedLocation = 'Lat:$latitude, Lng:$longitude';
+
+    // Masukkan string ke dalam alamatController
+    alamatEditController.text = formattedLocation;
+
+    // print(latitude);
+    // print(longitude);
+  }
+
+  Future<void> hapusDataRekap(BuildContext context, int id) async {
+    try {
+      await DatabaseHelper().deleteRekap(id);
+
+      // Tampilkan pesan sukses
+      Utils.showSuccessSnackBar(
+        Overlay.of(context),
+        "Data Berhasil Dihapus",
+      );
+    } catch (e) {
+      // Tangani kesalahan jika terjadi
+      Utils.showErrorSnackBar(
+        Overlay.of(context),
+        "Gagal menghapus data: $e",
+      );
+    }
+  }
 }
