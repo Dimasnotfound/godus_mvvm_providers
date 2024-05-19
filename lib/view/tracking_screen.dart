@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:godus/viewModel/tracking_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:godus/models/muatan_model.dart';
+import 'package:intl/intl.dart';
 
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
@@ -13,13 +14,11 @@ class TrackingScreen extends StatefulWidget {
 
 class _TrackingScreenState extends State<TrackingScreen> {
   TextEditingController jumlahController = TextEditingController();
-  DateTime selectedDate = DateTime.now();
-  bool isDateSelected = false;
+  GoogleMapController? _controller;
 
   @override
   void initState() {
     super.initState();
-    // Panggil method untuk mengambil data latitude dan longitude dari database
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<TrackingViewModel>(context, listen: false)
           .fetchGooglePlexLatLng();
@@ -30,20 +29,31 @@ class _TrackingScreenState extends State<TrackingScreen> {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate,
+      initialDate:
+          context.read<TrackingViewModel>().selectedDate ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-        isDateSelected = true;
+    if (picked != null) {
+      await context.read<TrackingViewModel>().fetchRekapByDate(picked);
+      _updateCamera(context.read<TrackingViewModel>().markers);
+    }
+  }
+
+  void _updateCamera(Set<Marker> markers) {
+    if (_controller != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _controller!.animateCamera(
+          context.read<TrackingViewModel>().getCameraUpdate(markers),
+        );
       });
     }
   }
 
-  String _getFormattedDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
+  String _getFormattedDate(DateTime? date) {
+    if (date == null) return '';
+    final DateFormat formatter = DateFormat('dd-MM-yyyy');
+    return formatter.format(date);
   }
 
   void _showCargoDialog(BuildContext context) {
@@ -117,7 +127,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     onPressed: () async {
                       int jumlah = int.parse(jumlahController.text);
 
-                      // Panggil fungsi createMuatan dari ViewModel untuk membuat objek Muatan
                       Muatan muatan =
                           Provider.of<TrackingViewModel>(context, listen: false)
                               .createMuatan(jumlah);
@@ -158,11 +167,16 @@ class _TrackingScreenState extends State<TrackingScreen> {
             FloatingActionButton.extended(
               onPressed: () => _selectDate(context),
               elevation: 6,
-              label: Text(
-                isDateSelected
-                    ? _getFormattedDate(selectedDate)
-                    : 'Pilih Tanggal',
-                style: const TextStyle(color: Color(0xFF401616)),
+              label: Consumer<TrackingViewModel>(
+                builder: (context, model, child) {
+                  final selectedDate = model.selectedDate;
+                  return Text(
+                    selectedDate != null
+                        ? _getFormattedDate(selectedDate)
+                        : 'Pilih Tanggal',
+                    style: const TextStyle(color: Color(0xFF401616)),
+                  );
+                },
               ),
               icon: const Icon(
                 Icons.calendar_today,
@@ -189,14 +203,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       color: Colors.white,
                       fontFamily: 'Poppins',
                     ),
-                  ), // Spacer
+                  ),
                   Consumer<TrackingViewModel>(
                     builder: (context, model, child) {
                       final muatan = model.muatan;
                       if (muatan != null) {
                         return Text(
-                          muatan.jumlah
-                              .toString(), // Ambil jumlah muatan dari database
+                          muatan.jumlah.toString(),
                           style: const TextStyle(
                             color: Colors.white,
                             fontFamily: 'Poppins',
@@ -205,7 +218,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                         );
                       } else {
                         return const Text(
-                          'Muatan Kosong', // Tampilkan jika tidak ada data muatan
+                          'Muatan Kosong',
                           style: TextStyle(
                             color: Colors.white,
                             fontFamily: 'Poppins',
@@ -230,38 +243,32 @@ class _TrackingScreenState extends State<TrackingScreen> {
       body: Consumer<TrackingViewModel>(
         builder: (context, model, child) {
           final googlePlexLatLng = model.googlePlexLatLng;
-          return googlePlexLatLng != null
-              ? GoogleMap(
-                  mapType: MapType.normal,
-                  initialCameraPosition: CameraPosition(
-                    target: googlePlexLatLng,
-                    zoom: 18,
-                    // bearing: 192,
-                    // tilt: 55,
-                  ),
-                  markers: <Marker>{
-                    Marker(
-                      markerId: const MarkerId("googlePlexMarker"),
-                      position: googlePlexLatLng,
-                      infoWindow: const InfoWindow(
-                        title: "Googleplex",
-                        snippet: "Google Headquarters",
-                      ),
-                    ),
-                    Marker(
-                      markerId: const MarkerId("secondMarker"),
-                      position: LatLng(googlePlexLatLng.latitude + 0.001,
-                          googlePlexLatLng.longitude + 0.001),
-                      infoWindow: const InfoWindow(
-                        title: "Second Marker",
-                        snippet: "Some description",
-                      ),
-                    ),
-                  },
-                )
-              : const Center(
-                  child: CircularProgressIndicator(),
-                );
+          final markers = model.markers;
+          final polylines = model.polylines;
+
+          if (_controller != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _controller!.animateCamera(
+                model.getCameraUpdate(markers),
+              );
+            });
+          }
+
+          return GoogleMap(
+            mapType: MapType.normal,
+            initialCameraPosition: CameraPosition(
+              target: googlePlexLatLng ?? const LatLng(0, 0),
+              zoom: 18,
+            ),
+            markers: markers,
+            polylines: polylines,
+            onMapCreated: (controller) {
+              _controller = controller;
+              _controller!.animateCamera(
+                model.getCameraUpdate(markers),
+              );
+            },
+          );
         },
       ),
     );

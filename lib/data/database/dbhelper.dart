@@ -5,6 +5,7 @@ import 'package:godus/models/alamat_penjual_model.dart';
 import 'package:godus/models/muatan_model.dart';
 import 'package:godus/models/alamat_pembeli_model.dart';
 import 'package:godus/models/rekap.dart';
+import 'package:intl/intl.dart'; // Import library untuk memformat tanggal
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -403,5 +404,20 @@ class DatabaseHelper {
       where: 'id_rekap = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<List<Rekap>> getRekapByDate(DateTime date) async {
+    final db = await database;
+    final formattedDate = DateFormat('dd-MM-yyyy').format(date);
+    // print(formattedDate); // Format tanggal sesuai dengan format dalam database
+    final List<Map<String, dynamic>> rekapList = await db.query(
+      'rekap',
+      where: 'tanggal_pengantaran = ?',
+      whereArgs: [formattedDate],
+    );
+
+    return List.generate(rekapList.length, (i) {
+      return Rekap.fromMap(rekapList[i]);
+    });
   }
 }
