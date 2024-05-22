@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:godus/viewModel/tracking_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:godus/models/muatan_model.dart';
 import 'package:intl/intl.dart';
+import 'package:custom_info_window/custom_info_window.dart';
 
 class TrackingScreen extends StatefulWidget {
   const TrackingScreen({super.key});
@@ -35,7 +38,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
       lastDate: DateTime(2101),
     );
     if (picked != null) {
-      await context.read<TrackingViewModel>().fetchRekapByDate(picked);
+      await context.read<TrackingViewModel>().fetchRekapByDate(context, picked);
       _updateCamera(context.read<TrackingViewModel>().markers);
     }
   }
@@ -254,20 +257,38 @@ class _TrackingScreenState extends State<TrackingScreen> {
             });
           }
 
-          return GoogleMap(
-            mapType: MapType.normal,
-            initialCameraPosition: CameraPosition(
-              target: googlePlexLatLng ?? const LatLng(0, 0),
-              zoom: 18,
-            ),
-            markers: markers,
-            polylines: polylines,
-            onMapCreated: (controller) {
-              _controller = controller;
-              _controller!.animateCamera(
-                model.getCameraUpdate(markers),
-              );
-            },
+          return Stack(
+            children: [
+              GoogleMap(
+                mapType: MapType.normal,
+                initialCameraPosition: CameraPosition(
+                  target: googlePlexLatLng ?? const LatLng(0, 0),
+                  zoom: 18,
+                ),
+                markers: markers,
+                polylines: polylines,
+                onMapCreated: (controller) {
+                  _controller = controller;
+                  _controller!.animateCamera(
+                    model.getCameraUpdate(markers),
+                  );
+                  model.customInfoWindowController.googleMapController =
+                      controller;
+                },
+                onTap: (position) {
+                  model.customInfoWindowController.hideInfoWindow!();
+                },
+                onCameraMove: (position) {
+                  model.customInfoWindowController.onCameraMove!();
+                },
+              ),
+              CustomInfoWindow(
+                controller: model.customInfoWindowController,
+                height: 160, //ubah bagian ini
+                width: 300, //ubah bagian ini
+                offset: 50, //ubah bagian ini
+              ),
+            ],
           );
         },
       ),

@@ -1,4 +1,4 @@
-package com.example.mvvm_app
+package com.example.godus
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,12 +1,12 @@
-# mvvm_app
+# godus
 
 A Flutter Project that enforces the idea of MVVM Software Architecture Pattern for maintaining Clean Code.
+
 - It focuses on:
-``` dart
+
+```dart
 1. Maintainability
 2. Scallability
 3. Separation of Concerns
 4. Unit Testing
 ```
-
-

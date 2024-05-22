@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.mvvm_app">
+    package="com.example.godus">
    <application
-        android:label="mvvm_app"
+        android:label="godus"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data

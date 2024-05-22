@@ -50,9 +50,9 @@ class _SplashScreenState extends State<SplashScreen> {
               padding: const EdgeInsets.all(16.0),
               child: ElevatedButton(
                 style: ButtonStyle(
-                  elevation: MaterialStateProperty.all<double>(8),
+                  elevation: WidgetStateProperty.all<double>(8),
                   backgroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xFFFFFFFF)),
+                      WidgetStateProperty.all<Color>(const Color(0xFFFFFFFF)),
                 ),
                 onPressed: () {
                   // print(screenWidth);

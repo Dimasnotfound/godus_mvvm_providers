@@ -6,13 +6,20 @@ class DirectionsRepository {
   final String _baseUrl =
       'https://maps.googleapis.com/maps/api/directions/json';
 
-  Future<Directions?> getDirections(LatLng origin, LatLng destination) async {
+  Future<Directions?> getDirections({
+    required LatLng origin,
+    required LatLng destination,
+    List<LatLng> waypoints = const [],
+  }) async {
     try {
       final response = await _dio.get(
         _baseUrl,
         queryParameters: {
           'origin': '${origin.latitude},${origin.longitude}',
           'destination': '${destination.latitude},${destination.longitude}',
+          'waypoints': waypoints.isNotEmpty
+              ? waypoints.map((e) => '${e.latitude},${e.longitude}').join('|')
+              : null,
           'key': 'AIzaSyAn-Dx8xBKOEodyVemjCPrkNQRyt0CAgvE',
           'mode': 'driving',
         },
