@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:godus/models/alamat_penjual_model.dart';
 import 'package:godus/models/muatan_model.dart';
 import 'package:godus/models/alamat_pembeli_model.dart';
+import 'package:godus/models/akun_model.dart';
 import 'package:godus/models/rekap.dart';
 import 'package:intl/intl.dart'; // Import library untuk memformat tanggal
 
@@ -196,7 +197,8 @@ class DatabaseHelper {
 
   Future<AlamatPenjual?> getAlamat() async {
     final db = await database;
-    final List<Map<String, dynamic>> result = await db.query('alamat_penjual');
+    final List<Map<String, dynamic>> result =
+        await db.query('alamat_penjual', where: 'id = 1');
 
     if (result.isNotEmpty) {
       return AlamatPenjual.fromMap(result.first);
@@ -412,12 +414,22 @@ class DatabaseHelper {
     // print(formattedDate); // Format tanggal sesuai dengan format dalam database
     final List<Map<String, dynamic>> rekapList = await db.query(
       'rekap',
-      where: 'tanggal_pengantaran = ?',
+      where: 'tanggal_pengantaran = ? AND FK_status_pengantaran  = 1',
       whereArgs: [formattedDate],
     );
 
     return List.generate(rekapList.length, (i) {
       return Rekap.fromMap(rekapList[i]);
     });
+  }
+
+  Future<Akun?> getDataUser() async {
+    final db = await database;
+    final List<Map<String, dynamic>> user = await db.query('users');
+    if (user.isNotEmpty) {
+      return Akun.fromMap(user.first);
+    } else {
+      return null; // Tambahkan return null untuk menangani kasus ketika user kosong
+    }
   }
 }

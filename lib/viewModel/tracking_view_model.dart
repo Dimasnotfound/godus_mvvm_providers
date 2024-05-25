@@ -12,9 +12,10 @@ import 'package:godus/data/network/network_polyline.dart';
 import 'package:godus/utils/haversine_algorithm.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:intl/intl.dart';
-// import 'package:path/path.dart';
+import 'package:panara_dialogs/panara_dialogs.dart';
 
 class TrackingViewModel with ChangeNotifier {
+  TextEditingController jumlahController = TextEditingController();
   LatLng? _googlePlexLatLng;
   Muatan? _muatan;
   final Set<Marker> _markers = {};
@@ -30,13 +31,16 @@ class TrackingViewModel with ChangeNotifier {
     );
   }
 
-  Future<void> insertOrUpdateMuatan(Muatan muatan, BuildContext context) async {
+  Future<void> insertOrUpdateMuatan(
+      Muatan muatan, BuildContext context, bool type) async {
     final db = DatabaseHelper();
     await db.insertOrUpdateMuatan(muatan);
-    Utils.showSuccessSnackBar(
-      Overlay.of(context),
-      "Data Berhasil Ditambahkan",
-    );
+    if (type) {
+      Utils.showSuccessSnackBar(
+        Overlay.of(context),
+        "Data Berhasil Diubah",
+      );
+    }
     await fetchMuatan();
   }
 
@@ -44,16 +48,25 @@ class TrackingViewModel with ChangeNotifier {
     final db = DatabaseHelper();
     _muatan = await db.getMuatan();
     notifyListeners();
+
+    // Set jumlahController dengan nilai dari _muatan setelah fetchMuatan()
+    if (_muatan != null) {
+      jumlahController.text = _muatan!.jumlah.toString();
+    }
   }
 
   Muatan? get muatan => _muatan;
 
   Future<void> fetchGooglePlexLatLng() async {
+    _markers.clear();
     final alamatPenjualList = await DatabaseHelper().getAlamatPenjualList();
     if (alamatPenjualList.isNotEmpty) {
       final AlamatPenjual alamatPenjual = alamatPenjualList.first;
       final latitude = alamatPenjual.latitude;
       final longitude = alamatPenjual.longitude;
+
+      // print(alamatPenjual.latitude);
+      // print(alamatPenjual.longitude);
 
       final defaultLatitude = latitude ?? 0;
       final defaultLongitude = longitude ?? 0;
@@ -94,9 +107,9 @@ class TrackingViewModel with ChangeNotifier {
 
   Future<void> fetchRekapByDate(BuildContext context, DateTime date) async {
     _selectedDate = date;
+    customInfoWindowController.hideInfoWindow!();
     clearMarkers();
     _polylines.clear();
-    // ignore: unnecessary_nullable_for_final_variable_declarations
     final List<Rekap>? rekapList = await DatabaseHelper().getRekapByDate(date);
     List<LatLng> points = [];
 
@@ -115,50 +128,60 @@ class TrackingViewModel with ChangeNotifier {
       }
     }
 
-    // Urutkan points berdasarkan jarak dari _googlePlexLatLng
     points = Haversine.sortPointsByDistance(_googlePlexLatLng!, points);
 
     if (points.isNotEmpty) {
       LatLng startPoint = _googlePlexLatLng!;
       LatLng currentPoint = startPoint;
 
-      // Variabel untuk menyimpan jarak dan waktu kumulatif
       double cumulativeDistance = 0.0;
       double cumulativeDuration = 0.0;
 
       for (int i = 0; i < points.length; i++) {
         LatLng nextPoint = points[i];
 
-        // Menggunakan DirectionsRepository untuk mendapatkan jarak dan waktu antara currentPoint dan nextPoint
         final directions = await DirectionsRepository().getDirections(
           origin: currentPoint,
           destination: nextPoint,
         );
-        // print('============================================');
-        // print(directions?.totalDuration);
 
         if (directions != null) {
-          // Tambahkan jarak dan waktu ke kumulatif
           cumulativeDistance += _parseDistance(directions.totalDistance);
           cumulativeDuration += _parseDuration(directions.totalDuration);
 
+          // Assigning an initial value to rekap
           Rekap rekap = rekapList![i];
 
-          // Tambahkan marker dengan jarak dan waktu kumulatif
+          // print('==========================');
+          // print(rekap);
+
+          // Cari data rekap yang sesuai dengan latlng yang telah diurutkan
+          for (Rekap r in rekapList) {
+            final AlamatPembeli? alamatPembeli =
+                await DatabaseHelper().getAlamatPembeliById(r.idAlamatPembeli!);
+            if (alamatPembeli != null) {
+              final LatLng position = LatLng(
+                  alamatPembeli.latitude ?? 0, alamatPembeli.longitude ?? 0);
+              if (position == nextPoint) {
+                rekap = r;
+                break;
+              }
+            }
+          }
+
           addMarker(
             context,
             nextPoint,
             rekap,
             _formatDistance(cumulativeDistance),
             _formatDuration(cumulativeDuration),
+            date,
           );
         }
 
-        // Update currentPoint untuk iterasi berikutnya
         currentPoint = nextPoint;
       }
 
-      // Tambahkan rute polyline dari startPoint ke titik terakhir
       final overallDirections = await DirectionsRepository().getDirections(
         origin: startPoint,
         destination: currentPoint,
@@ -177,13 +200,14 @@ class TrackingViewModel with ChangeNotifier {
     }
 
     notifyListeners();
+    checkMuatanAndShowAlert(context);
   }
 
   void addMarker(BuildContext context, LatLng position, Rekap rekap,
-      String distance, String duration) {
+      String distance, String duration, DateTime date) {
     _markers.add(
       Marker(
-        markerId: MarkerId(position.toString()),
+        markerId: MarkerId('${position}jumlah=${rekap.jumlahKambing}'),
         position: position,
         onTap: () {
           _customInfoWindowController.addInfoWindow!(
@@ -193,9 +217,8 @@ class TrackingViewModel with ChangeNotifier {
               decoration: BoxDecoration(
                 color: const Color(0xFF7DA0CA),
                 borderRadius: BorderRadius.circular(4),
-                // ignore: prefer_const_literals_to_create_immutables
-                boxShadow: [
-                  const BoxShadow(
+                boxShadow: const [
+                  BoxShadow(
                     color: Colors.black26,
                     blurRadius: 8,
                     spreadRadius: 3,
@@ -205,15 +228,90 @@ class TrackingViewModel with ChangeNotifier {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    rekap.namaPembeli ?? '',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                      color: Colors.white,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        rekap.namaPembeli ?? '',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: Colors.white,
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: rekap.idStatusPengantaran == 1
+                            ? () async {
+                                int jumlahControllerValue =
+                                    int.tryParse(jumlahController.text) ?? 0;
+                                int rekapJumlahKambing =
+                                    rekap.jumlahKambing ?? 0;
+
+                                if (jumlahControllerValue <
+                                    rekapJumlahKambing) {
+                                  checkMuatanAndShowAlert(context);
+                                  return;
+                                }
+
+                                PanaraConfirmDialog.showAnimatedGrow(
+                                  context,
+                                  title: "Konfirmasi",
+                                  message:
+                                      "Apakah Anda Ingin Mengubah Status Pengantaran?",
+                                  confirmButtonText: "Iya",
+                                  cancelButtonText: "Tidak",
+                                  onTapCancel: () {
+                                    Navigator.pop(context);
+                                  },
+                                  onTapConfirm: () async {
+                                    await ubahStatusPengantaran(
+                                        context, rekap.id!);
+
+                                    jumlahControllerValue -= rekapJumlahKambing;
+
+                                    Muatan muatan =
+                                        createMuatan(jumlahControllerValue);
+                                    await insertOrUpdateMuatan(
+                                        muatan, context, false);
+                                    Utils.showSuccessSnackBar(
+                                      Overlay.of(context),
+                                      "Pengiriman Selesai",
+                                    );
+
+                                    jumlahController.text =
+                                        jumlahControllerValue.toString();
+                                    Navigator.pop(context);
+                                    customInfoWindowController
+                                        .hideInfoWindow!();
+                                    await fetchRekapByDate(context, date);
+                                  },
+                                  panaraDialogType: PanaraDialogType.normal,
+                                );
+                              }
+                            : null,
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.resolveWith<Color>(
+                            (states) {
+                              if (rekap.idStatusPengantaran == 1) {
+                                return Colors.red;
+                              } else {
+                                return Colors.green;
+                              }
+                            },
+                          ),
+                        ),
+                        child: Text(
+                          rekap.idStatusPengantaran == 1 ? 'On Going' : 'Done',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  // SizedBox(height: 10),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -267,10 +365,8 @@ class TrackingViewModel with ChangeNotifier {
                           alignment: Alignment.topCenter,
                           child: Image.asset(
                             'assets/goat.png',
-                            width:
-                                250, // sesuaikan lebar gambar sesuai kebutuhan
-                            height:
-                                130, // sesuaikan tinggi gambar sesuai kebutuhan
+                            width: 120,
+                            height: 90,
                           ),
                         ),
                       ),
@@ -287,6 +383,22 @@ class TrackingViewModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> ubahStatusPengantaran(BuildContext context, int rekapId) async {
+    final dbHelper = DatabaseHelper();
+    final success = await dbHelper.updateStatusPengantaran(rekapId);
+    if (success) {
+      Utils.showSuccessSnackBar(
+        Overlay.of(context),
+        "Status Berhasil Diubah",
+      );
+    } else {
+      Utils.showErrorSnackBar(
+        Overlay.of(context),
+        "Status Gagal Diubah",
+      );
+    }
+  }
+
   String _formatCurrency(double value) {
     return NumberFormat.currency(locale: 'id')
         .format(value)
@@ -294,15 +406,11 @@ class TrackingViewModel with ChangeNotifier {
         .replaceAll('IDR', 'Rp. ');
   }
 
-// Fungsi untuk mengonversi jarak ke dalam double
   double _parseDistance(String distance) {
-    // Asumsikan format jarak adalah "XX.X km"
     return double.parse(distance.split(' ')[0]);
   }
 
-// Fungsi untuk mengonversi durasi ke dalam double (dalam menit)
   double _parseDuration(String duration) {
-    // Asumsikan format durasi adalah "X jam Y menit" atau "Y menit"
     final parts = duration.split(' ');
     double totalMinutes = 0.0;
 
@@ -317,12 +425,10 @@ class TrackingViewModel with ChangeNotifier {
     return totalMinutes;
   }
 
-// Fungsi untuk memformat jarak (dalam km)
   String _formatDistance(double distance) {
     return "${distance.toStringAsFixed(1)} km";
   }
 
-// Fungsi untuk memformat durasi (dalam jam dan menit)
   String _formatDuration(double duration) {
     final hours = (duration / 60).floor();
     final minutes = (duration % 60).floor();
@@ -359,6 +465,51 @@ class TrackingViewModel with ChangeNotifier {
     } else {
       final LatLngBounds bounds = getBounds(markers);
       return CameraUpdate.newLatLngBounds(bounds, 50);
+    }
+  }
+
+  void checkMuatanAndShowAlert(BuildContext context) {
+    if (_muatan != null && _markers.isNotEmpty && _markers.length > 1) {
+      // Ambil marker kedua (index ke-1)
+      Marker marker = _markers.elementAt(1);
+
+      // Informasi yang diperlukan dari marker kedua
+      String markerId = marker.markerId.toString();
+
+      // Cari posisi index awal 'jumlah='
+      int startIndex = markerId.indexOf('jumlah=') + 'jumlah='.length;
+
+      // Cari posisi index akhir ')'
+      int endIndex = markerId.indexOf(')', startIndex);
+
+      // Ambil substring mulai dari index awal 'jumlah=' hingga sebelum karakter ')'
+      String jumlahKambingPembeliString =
+          markerId.substring(startIndex, endIndex);
+
+      // Parse string menjadi integer
+      int jumlahKambingPembeli = int.tryParse(jumlahKambingPembeliString) ?? 0;
+      int jumlahMuatan = int.tryParse(jumlahController.text) ?? 0;
+
+      if (jumlahMuatan < jumlahKambingPembeli) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Peringatan"),
+              content: Text("Silakan ambil muatan/tambah muatan"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("OK"),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 }

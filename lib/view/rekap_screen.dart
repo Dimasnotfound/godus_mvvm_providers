@@ -192,35 +192,37 @@ class _RekapScreenState extends State<RekapScreen> {
                                         Container(
                                           alignment: Alignment.center,
                                           child: ElevatedButton(
-                                            onPressed: rekap
-                                                        .idStatusPengantaran ==
-                                                    1
-                                                ? () async {
-                                                    PanaraConfirmDialog
-                                                        .showAnimatedGrow(
-                                                      context,
-                                                      title: "Konfirmasi",
-                                                      message:
-                                                          "Apakah Anda Ingin Mengubah Status Pengantaran?",
-                                                      confirmButtonText: "Iya",
-                                                      cancelButtonText: "Tidak",
-                                                      onTapCancel: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      onTapConfirm: () async {
-                                                        await viewModel
-                                                            .ubahStatusPengantaran(
-                                                                context,
-                                                                rekap.id!);
-                                                        Navigator.pop(context);
-                                                        setState(() {});
-                                                      },
-                                                      panaraDialogType:
-                                                          PanaraDialogType
-                                                              .normal,
-                                                    );
-                                                  }
-                                                : null, // Tidak ada fungsi onPressed jika status sudah "Done"
+                                            onPressed:
+                                                // rekap
+                                                //             .idStatusPengantaran ==
+                                                //         1
+                                                //     ? () async {
+                                                //         PanaraConfirmDialog
+                                                //             .showAnimatedGrow(
+                                                //           context,
+                                                //           title: "Konfirmasi",
+                                                //           message:
+                                                //               "Apakah Anda Ingin Mengubah Status Pengantaran?",
+                                                //           confirmButtonText: "Iya",
+                                                //           cancelButtonText: "Tidak",
+                                                //           onTapCancel: () {
+                                                //             Navigator.pop(context);
+                                                //           },
+                                                //           onTapConfirm: () async {
+                                                //             await viewModel
+                                                //                 .ubahStatusPengantaran(
+                                                //                     context,
+                                                //                     rekap.id!);
+                                                //             Navigator.pop(context);
+                                                //             setState(() {});
+                                                //           },
+                                                //           panaraDialogType:
+                                                //               PanaraDialogType
+                                                //                   .normal,
+                                                //         );
+                                                //       }
+                                                //     :
+                                                null, // Tidak ada fungsi onPressed jika status sudah "Done"
                                             style: ButtonStyle(
                                               backgroundColor:
                                                   WidgetStateProperty
@@ -668,7 +670,7 @@ class _RekapScreenState extends State<RekapScreen> {
                               viewModel.kabupatenController.text.isEmpty) {
                             Utils.showErrorSnackBar(
                               Overlay.of(context),
-                              "Ganti Bagian Kosong Dengan (-)",
+                              "Data Tidak Boleh Kosong",
                             );
                           } else {
                             // Semua field terisi, maka dapat melanjutkan
@@ -1126,7 +1128,7 @@ class _RekapScreenState extends State<RekapScreen> {
                               viewModel.kabupatenEditController.text.isEmpty) {
                             Utils.showErrorSnackBar(
                               Overlay.of(context),
-                              "Ganti Bagian Kosong Dengan (-)",
+                              "Data Tidak Boleh Kosong",
                             );
                           } else {
                             // Semua field terisi, maka dapat melanjutkan

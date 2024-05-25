@@ -218,17 +218,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               _passwordController.text.isEmpty) {
                             Utils.showErrorSnackBar(
                               Overlay.of(context),
-                              "Data Tidak Valid",
+                              "Data Tidak Boleh Kosong",
                             );
                           } else if (_passwordController.text.isEmpty) {
                             Utils.showErrorSnackBar(
                               Overlay.of(context),
-                              "Password Kosong",
+                              "Data Tidak Boleh Kosong",
                             );
                           } else if (_usernameController.text.isEmpty) {
                             Utils.showErrorSnackBar(
                               Overlay.of(context),
-                              "Username Kosong",
+                              "Data Tidak Boleh Kosong",
                             );
                           } else {
                             authViewModel.localLogin(

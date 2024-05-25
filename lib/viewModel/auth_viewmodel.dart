@@ -59,7 +59,7 @@ class AuthViewModel with ChangeNotifier {
       if (Navigator.canPop(context)) {
         Utils.showErrorSnackBar(
           Overlay.of(context),
-          "Data Tidak Valid",
+          "Username atau Password anda salah",
         );
       }
     }

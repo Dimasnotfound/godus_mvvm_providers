@@ -5,6 +5,7 @@ import 'package:godus/viewModel/auth_viewmodel.dart';
 import 'package:godus/viewModel/home_view_model.dart';
 import 'package:godus/viewModel/user_view_model.dart';
 import 'package:godus/viewModel/tracking_view_model.dart';
+import 'package:godus/viewModel/akun_view_model.dart';
 import 'package:godus/viewModel/init_alamat_view_model.dart';
 import 'package:godus/viewModel/rekap_view_model.dart';
 import 'package:godus/data/database/dbhelper.dart';
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => AlamatViewModel()),
           ChangeNotifierProvider(create: (_) => TrackingViewModel()),
           ChangeNotifierProvider(create: (_) => RekapViewModel()),
+          ChangeNotifierProvider(create: (_) => AkunViewModel()),
         ],
         child: PopScope(
           canPop: false, // Set to false to prevent popping

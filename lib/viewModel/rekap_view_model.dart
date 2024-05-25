@@ -371,21 +371,6 @@ class RekapViewModel with ChangeNotifier {
     }
   }
 
-  // void clearAllEditControllers() {
-  //   namaPembeliEditController.clear();
-  //   jumlahKambingEditController.clear();
-  //   hargaEditController.clear();
-  //   tanggalEditController.clear();
-  //   alamatEditController.clear();
-  //   dusunEditController.clear();
-  //   rtEditController.clear();
-  //   rwEditController.clear();
-  //   jalanEditController.clear();
-  //   desaEditController.clear();
-  //   kecamatanEditController.clear();
-  //   kabupatenEditController.clear();
-  // }
-
   Future<void> getLatlongPembeliEdit() async {
     final networkHelper = NetworkHelper();
 

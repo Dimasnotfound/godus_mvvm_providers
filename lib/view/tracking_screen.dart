@@ -16,7 +16,6 @@ class TrackingScreen extends StatefulWidget {
 }
 
 class _TrackingScreenState extends State<TrackingScreen> {
-  TextEditingController jumlahController = TextEditingController();
   GoogleMapController? _controller;
 
   @override
@@ -27,6 +26,18 @@ class _TrackingScreenState extends State<TrackingScreen> {
           .fetchGooglePlexLatLng();
       Provider.of<TrackingViewModel>(context, listen: false).fetchMuatan();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final viewModel = Provider.of<TrackingViewModel>(context, listen: false);
+    final selectedDate = viewModel.selectedDate;
+    if (selectedDate != null) {
+      Future.microtask(() async {
+        await viewModel.fetchRekapByDate(context, selectedDate);
+      });
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -62,6 +73,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
   void _showCargoDialog(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    final viewModel = Provider.of<TrackingViewModel>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -93,19 +106,72 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   ),
                   const SizedBox(width: 8.0),
                   Expanded(
-                    child: TextFormField(
-                      controller: jumlahController,
-                      textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
+                      child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: screenWidth *
+                            0.5, // Sesuaikan lebar input sesuai kebutuhan
+                        height: screenHeight * 0.075,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            TextField(
+                              controller: viewModel.jumlahController,
+                              textAlign: TextAlign.center,
+                              keyboardType: TextInputType.number,
+                              enabled: false,
+                              decoration: InputDecoration(
+                                filled: true,
+                                labelStyle: const TextStyle(
+                                    color: Colors.black, fontFamily: 'Poppins'),
+
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal:
+                                        12.0), // Tambahkan padding horizontal
+                              ),
+                              style: const TextStyle(
+                                  color: Colors.black, fontFamily: 'Poppins'),
+                            ),
+                            Positioned(
+                              right: 0,
+                              child: IconButton(
+                                onPressed: () {
+                                  int currentValue = int.tryParse(
+                                          viewModel.jumlahController.text) ??
+                                      0;
+                                  int updatedValue = currentValue + 1;
+                                  viewModel.jumlahController.text =
+                                      updatedValue.toString();
+                                },
+                                icon: Icon(Icons.add),
+                              ),
+                            ),
+                            Positioned(
+                              left: 0,
+                              child: IconButton(
+                                onPressed: () {
+                                  int currentValue = int.tryParse(
+                                          viewModel.jumlahController.text) ??
+                                      0;
+                                  int updatedValue = currentValue - 1;
+                                  if (updatedValue >= 0) {
+                                    viewModel.jumlahController.text =
+                                        updatedValue.toString();
+                                  }
+                                },
+                                icon: Icon(Icons.remove),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
+                    ],
+                  )),
                 ],
               ),
               const SizedBox(height: 16.0),
@@ -128,15 +194,17 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   const SizedBox(width: 8.0),
                   ElevatedButton(
                     onPressed: () async {
-                      int jumlah = int.parse(jumlahController.text);
+                      int jumlah = int.parse(viewModel.jumlahController.text);
 
                       Muatan muatan =
                           Provider.of<TrackingViewModel>(context, listen: false)
                               .createMuatan(jumlah);
                       await Provider.of<TrackingViewModel>(context,
                               listen: false)
-                          .insertOrUpdateMuatan(muatan, context);
+                          .insertOrUpdateMuatan(muatan, context,true);
                       Navigator.of(context).pop();
+
+                      viewModel.checkMuatanAndShowAlert(context);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
@@ -209,10 +277,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   ),
                   Consumer<TrackingViewModel>(
                     builder: (context, model, child) {
-                      final muatan = model.muatan;
-                      if (muatan != null) {
+                      final jumlah = model.jumlahController.text;
+                      if (jumlah.isNotEmpty) {
                         return Text(
-                          muatan.jumlah.toString(),
+                          jumlah,
                           style: const TextStyle(
                             color: Colors.white,
                             fontFamily: 'Poppins',
@@ -221,7 +289,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                         );
                       } else {
                         return const Text(
-                          'Muatan Kosong',
+                          'Muatan "0"',
                           style: TextStyle(
                             color: Colors.white,
                             fontFamily: 'Poppins',
