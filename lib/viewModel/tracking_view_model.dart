@@ -13,6 +13,7 @@ import 'package:godus/utils/haversine_algorithm.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:intl/intl.dart';
 import 'package:panara_dialogs/panara_dialogs.dart';
+import 'package:quickalert/quickalert.dart';
 
 class TrackingViewModel with ChangeNotifier {
   TextEditingController jumlahController = TextEditingController();
@@ -205,10 +206,13 @@ class TrackingViewModel with ChangeNotifier {
 
   void addMarker(BuildContext context, LatLng position, Rekap rekap,
       String distance, String duration, DateTime date) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     _markers.add(
       Marker(
         markerId: MarkerId('${position}jumlah=${rekap.jumlahKambing}'),
         position: position,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         onTap: () {
           _customInfoWindowController.addInfoWindow!(
             Container(
@@ -365,8 +369,8 @@ class TrackingViewModel with ChangeNotifier {
                           alignment: Alignment.topCenter,
                           child: Image.asset(
                             'assets/goat.png',
-                            width: 120,
-                            height: 90,
+                            width: screenWidth * 0.3333,
+                            height: screenHeight * 0.1184,
                           ),
                         ),
                       ),
@@ -491,23 +495,11 @@ class TrackingViewModel with ChangeNotifier {
       int jumlahMuatan = int.tryParse(jumlahController.text) ?? 0;
 
       if (jumlahMuatan < jumlahKambingPembeli) {
-        showDialog(
+        QuickAlert.show(
           context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Peringatan"),
-              content: Text("Silakan ambil muatan/tambah muatan"),
-              actions: <Widget>[
-                TextButton(
-                  child: Text("OK"),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            );
-          },
+          type: QuickAlertType.error,
+          title: 'Peringatan',
+          text: 'Muatan Kurang!!',
         );
       }
     }

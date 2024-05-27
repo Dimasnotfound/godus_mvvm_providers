@@ -73,6 +73,9 @@ class _TrackingScreenState extends State<TrackingScreen> {
   void _showCargoDialog(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    // print(screenWidth);
+    // print(screenHeight);
+    // print('==============================================');
     final viewModel = Provider.of<TrackingViewModel>(context, listen: false);
 
     showDialog(
@@ -201,7 +204,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                               .createMuatan(jumlah);
                       await Provider.of<TrackingViewModel>(context,
                               listen: false)
-                          .insertOrUpdateMuatan(muatan, context,true);
+                          .insertOrUpdateMuatan(muatan, context, true);
                       Navigator.of(context).pop();
 
                       viewModel.checkMuatanAndShowAlert(context);
@@ -352,8 +355,8 @@ class _TrackingScreenState extends State<TrackingScreen> {
               ),
               CustomInfoWindow(
                 controller: model.customInfoWindowController,
-                height: 160, //ubah bagian ini
-                width: 300, //ubah bagian ini
+                height: screenHeight * 0.2505, //ubah bagian ini
+                width: screenWidth * 0.8333, //ubah bagian ini
                 offset: 50, //ubah bagian ini
               ),
             ],

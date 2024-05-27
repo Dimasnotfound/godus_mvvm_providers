@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:godus/utils/utils.dart';
 import 'package:godus/models/rekap.dart';
 import 'package:panara_dialogs/panara_dialogs.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class RekapScreen extends StatefulWidget {
   const RekapScreen({super.key});
@@ -635,7 +636,7 @@ class _RekapScreenState extends State<RekapScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          viewModel.clearAlamatControllers();
+                          // viewModel.clearAlamatControllers();
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
@@ -673,14 +674,8 @@ class _RekapScreenState extends State<RekapScreen> {
                               "Data Tidak Boleh Kosong",
                             );
                           } else {
-                            // Semua field terisi, maka dapat melanjutkan
                             await viewModel.getLatlongPembeli();
-                            Utils.showSuccessSnackBar(
-                              Overlay.of(context),
-                              "Alamat Berhasil Disimpan",
-                            ); // Tunggu sampai mendapatkan lat-long
-                            Navigator.pop(
-                                context); // Tutup dialog setelah mendapatkan lat-long
+                            _showMapWidget(context);
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -708,6 +703,111 @@ class _RekapScreenState extends State<RekapScreen> {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // viewmap tambah data
+
+  void _showMapWidget(BuildContext context) {
+    final viewModel = Provider.of<RekapViewModel>(context, listen: false);
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Center(
+            child: Text(
+              "Set Lokasi",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: screenHeight * 0.3947, //ubah bagian sini
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target:
+                    LatLng(viewModel.latitude ?? 0, viewModel.longitude ?? 0),
+                zoom: 17,
+              ),
+              markers: {
+                Marker(
+                  markerId: MarkerId("alamat"),
+                  position:
+                      LatLng(viewModel.latitude ?? 0, viewModel.longitude ?? 0),
+                  draggable: true,
+                  onDragEnd: (LatLng newPosition) {
+                    viewModel.latitude = newPosition.latitude;
+                    viewModel.longitude = newPosition.longitude;
+                  },
+                ),
+              },
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                elevation: 8,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.011547619,
+                    horizontal: screenWidth * 0.0265),
+                child: Text(
+                  'BATAL',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: screenWidth * 0.0337,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final formattedLocation =
+                    'Lat:${viewModel.latitude}, Lng:${viewModel.longitude}';
+
+                // Perbarui alamat controller dengan lokasi yang diformat
+                setState(() {
+                  viewModel.alamatController.text = formattedLocation;
+                });
+
+                // Tutup dialog atau layar saat ini
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF215CA8),
+                elevation: 8,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.011547619,
+                    horizontal: screenWidth * 0.0265),
+                child: Text(
+                  'SIMPAN',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: screenWidth * 0.0337,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -1133,11 +1233,13 @@ class _RekapScreenState extends State<RekapScreen> {
                           } else {
                             // Semua field terisi, maka dapat melanjutkan
                             await viewModel.getLatlongPembeliEdit();
-                            Utils.showSuccessSnackBar(
-                              Overlay.of(context),
-                              "Alamat Berhasil Disimpan",
-                            ); // Tunggu sampai mendapatkan lat-long
-                            Navigator.pop(
+                            // Utils.showSuccessSnackBar(
+                            //   Overlay.of(context),
+                            //   "Alamat Berhasil Disimpan",
+                            // ); // Tunggu sampai mendapatkan lat-long
+                            // Navigator.pop(
+                            //     context);
+                            _showMapWidgetEdit(
                                 context); // Tutup dialog setelah mendapatkan lat-long
                           }
                         },
@@ -1166,6 +1268,108 @@ class _RekapScreenState extends State<RekapScreen> {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showMapWidgetEdit(BuildContext context) {
+    final viewModel = Provider.of<RekapViewModel>(context, listen: false);
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Center(
+            child: Text(
+              "Set Lokasi",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: screenHeight * 0.3947, //ubah bagian sini
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target:
+                    LatLng(viewModel.latitude ?? 0, viewModel.longitude ?? 0),
+                zoom: 17,
+              ),
+              markers: {
+                Marker(
+                  markerId: MarkerId("alamat"),
+                  position:
+                      LatLng(viewModel.latitude ?? 0, viewModel.longitude ?? 0),
+                  draggable: true,
+                  onDragEnd: (LatLng newPosition) {
+                    viewModel.latitude = newPosition.latitude;
+                    viewModel.longitude = newPosition.longitude;
+                  },
+                ),
+              },
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                elevation: 8,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.011547619,
+                    horizontal: screenWidth * 0.0265),
+                child: Text(
+                  'BATAL',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: screenWidth * 0.0337,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final formattedLocation =
+                    'Lat:${viewModel.latitude}, Lng:${viewModel.longitude}';
+
+                setState(() {
+                  viewModel.alamatEditController.text = formattedLocation;
+                });
+
+                // Tutup dialog atau layar saat ini
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF215CA8),
+                elevation: 8,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.011547619,
+                    horizontal: screenWidth * 0.0265),
+                child: Text(
+                  'SIMPAN',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: screenWidth * 0.0337,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

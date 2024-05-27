@@ -3,6 +3,7 @@ import 'package:godus/models/alamat_penjual_model.dart';
 import 'package:godus/models/akun_model.dart';
 import 'package:godus/data/database/dbhelper.dart';
 import 'package:godus/data/network/networks.dart';
+// import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class AkunViewModel with ChangeNotifier {
   Akun? _user;
@@ -61,7 +62,7 @@ class AkunViewModel with ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> updateAlamatPenjual(BuildContext context) async {
+  Future<void> getLatLng(BuildContext context) async {
     final networkHelper = NetworkHelper();
     final latLng = await networkHelper.getLatLngFromAddress(
       dusun: dusunController.text,
@@ -75,7 +76,10 @@ class AkunViewModel with ChangeNotifier {
 
     latitude = latLng['latitude'];
     longitude = latLng['longitude'];
+    // print('+++++++++++++++++++++++++++++++++++++++++++++++');
+  }
 
+  Future<void> updateAlamatPenjual(BuildContext context) async {
     final dbHelper = DatabaseHelper();
     final alamat = AlamatPenjual(
       dusun: dusunController.text,
@@ -95,6 +99,7 @@ class AkunViewModel with ChangeNotifier {
     } else {
       alamat.id = existingAlamat.id;
       await dbHelper.updateAlamat(alamat);
+      await getDataAkun();
     }
 
     notifyListeners();

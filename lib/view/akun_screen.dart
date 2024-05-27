@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously, prefer_const_constructors
 
 import 'package:flutter/material.dart';
 import 'package:godus/viewModel/akun_view_model.dart';
@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:godus/utils/routes/routes_names.dart';
 import 'package:godus/utils/utils.dart';
 import 'package:godus/viewModel/user_view_model.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class AkunScreen extends StatefulWidget {
   const AkunScreen({super.key});
@@ -78,6 +79,7 @@ class _AkunScreenState extends State<AkunScreen> {
                       showEditButton: true,
                       onEditPressed: () {
                         _showAlamatWidget(context);
+                        // _showMapWidget(context);
                       },
                     ),
                     const SizedBox(
@@ -209,13 +211,8 @@ class _AkunScreenState extends State<AkunScreen> {
                               "Data Tidak Boleh Kosong",
                             );
                           } else {
-                            // Semua field terisi, maka dapat melanjutkan
-                            await viewModel.updateAlamatPenjual(context);
-                            Utils.showSuccessSnackBar(
-                              Overlay.of(context),
-                              "Data Berhasil Diubah!",
-                            ); // Tunggu sampai mendapatkan lat-long
-                            Navigator.pop(
+                            await viewModel.getLatLng(context);
+                            _showMapWidget(
                                 context); // Tutup dialog setelah mendapatkan lat-long
                           }
                         },
@@ -244,6 +241,105 @@ class _AkunScreenState extends State<AkunScreen> {
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  void _showMapWidget(BuildContext context) {
+    final viewModel = Provider.of<AkunViewModel>(context, listen: false);
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    // Navigator.pop(context);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Center(
+            child: Text(
+              "Set Lokasi",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: screenHeight * 0.3947, //ubah bagian sini
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target:
+                    LatLng(viewModel.latitude ?? 0, viewModel.longitude ?? 0),
+                zoom: 17,
+              ),
+              markers: {
+                Marker(
+                  markerId: MarkerId("alamat"),
+                  position:
+                      LatLng(viewModel.latitude ?? 0, viewModel.longitude ?? 0),
+                  draggable: true,
+                  onDragEnd: (LatLng newPosition) {
+                    viewModel.latitude = newPosition.latitude;
+                    viewModel.longitude = newPosition.longitude;
+                  },
+                ),
+              },
+            ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                elevation: 8,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.011547619,
+                    horizontal: screenWidth * 0.0265),
+                child: Text(
+                  'BATAL',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: screenWidth * 0.0337,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await viewModel.updateAlamatPenjual(context);
+                Navigator.pop(context);
+                Utils.showSuccessSnackBar(
+                  Overlay.of(context),
+                  "Data Berhasil Diubah!",
+                );
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF215CA8),
+                elevation: 8,
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.011547619,
+                    horizontal: screenWidth * 0.0265),
+                child: Text(
+                  'SIMPAN',
+                  style: TextStyle(
+                    color: const Color(0xFFFFFFFF),
+                    fontSize: screenWidth * 0.0337,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

@@ -66,25 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         centerTitle: true,
-        // actions: [
-        //   InkWell(
-        //     onTap: () {
-        //       preferences.removeUser().then((value) {
-        //         Navigator.pop(context);
-        //         Navigator.pushNamed(context, RouteNames.login);
-        //       });
-        //     },
-        //     child: Padding(
-        //       padding: const EdgeInsets.only(top: 12),
-        //       child: Ink(
-        //         child: const Text("Logout"),
-        //       ),
-        //     ),
-        //   ),
-        //   const SizedBox(
-        //     width: 20,
-        //   ),
-        // ],
       ),
       body: PageView(
         controller: _pageController,
@@ -153,43 +134,4 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// class _HomeScreenState extends State<HomeScreen> {
-//   HomeViewModel hm = HomeViewModel();
 
-//   @override
-//   void initState() {
-//     super.initState();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final preferences = Provider.of<UserViewModel>(context);
-
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Home Screen"),
-//         centerTitle: true,
-//         automaticallyImplyLeading: false,
-//         actions: [
-//           InkWell(
-//             onTap: () {
-//               preferences.removeUser().then((value) {
-//                 Navigator.pop(context);
-//                 Navigator.pushNamed(context, RouteNames.login);
-//               });
-//             },
-//             child: Padding(
-//               padding: const EdgeInsets.only(top: 12),
-//               child: Ink(
-//                 child: const Text("Logout"),
-//               ),
-//             ),
-//           ),
-//           const SizedBox(
-//             width: 20,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

@@ -37,6 +37,9 @@ class RekapViewModel with ChangeNotifier {
   TextEditingController kecamatanEditController = TextEditingController();
   TextEditingController kabupatenEditController = TextEditingController();
 
+  double? latitude;
+  double? longitude;
+
   // Method untuk membersihkan kontroller saat tidak digunakan
   void disposeControllers() {
     namaPembeliController.dispose();
@@ -91,36 +94,15 @@ class RekapViewModel with ChangeNotifier {
       kabupaten: kabupatenController.text,
     );
 
-    final latitude = latLng['latitude'];
-    final longitude = latLng['longitude'];
-    final formattedLocation = 'Lat:$latitude, Lng:$longitude';
+    latitude = latLng['latitude'];
+    longitude = latLng['longitude'];
+    // final formattedLocation = 'Lat:$latitude, Lng:$longitude';
 
-    // Masukkan string ke dalam alamatController
-    alamatController.text = formattedLocation;
-    // print(latitude);
-    // print(longitude);
+    // alamatController.text = formattedLocation;
   }
 
   Future<void> simpanPembeli(BuildContext context) async {
-    final networkHelper = NetworkHelper();
-    final latLng = await networkHelper.getLatLngFromAddress(
-      dusun: dusunController.text,
-      jalan: jalanController.text,
-      rt: rtController.text,
-      rw: rwController.text,
-      desa: desaController.text,
-      kecamatan: kecamatanController.text,
-      kabupaten: kabupatenController.text,
-    );
-
     final dbHelper = DatabaseHelper();
-    final latitude = latLng['latitude'];
-    final longitude = latLng['longitude'];
-    final formattedLocation = 'Lat:$latitude, Lng:$longitude';
-
-    // Masukkan string ke dalam alamatController
-    alamatController.text = formattedLocation;
-
     final alamat = AlamatPembeli(
       dusun: dusunController.text,
       rt: rtController.text,
@@ -312,7 +294,7 @@ class RekapViewModel with ChangeNotifier {
   }
 
   Future<void> updateRekap(BuildContext context, int id) async {
-    final networkHelper = NetworkHelper();
+    // final networkHelper = NetworkHelper();
     final dbHelper = DatabaseHelper();
 
     final rekap = await dbHelper.getRekapById(id);
@@ -327,22 +309,6 @@ class RekapViewModel with ChangeNotifier {
       // Perbarui data rekap di database
       await dbHelper.updateRekap(rekap, id);
 
-      final latLng = await networkHelper.getLatLngFromAddress(
-        dusun: dusunEditController.text,
-        jalan: jalanEditController.text,
-        rt: rtEditController.text,
-        rw: rwEditController.text,
-        desa: desaEditController.text,
-        kecamatan: kecamatanEditController.text,
-        kabupaten: kabupatenEditController.text,
-      );
-
-      final latitude = latLng['latitude'];
-      final longitude = latLng['longitude'];
-      final formattedLocation = 'Lat:$latitude, Lng:$longitude';
-
-      // Masukkan string ke dalam alamatController
-      alamatEditController.text = formattedLocation;
 
       final alamat = AlamatPembeli(
         id: rekap.idAlamatPembeli, // pastikan untuk menyertakan ID untuk update
@@ -384,15 +350,12 @@ class RekapViewModel with ChangeNotifier {
       kabupaten: kabupatenEditController.text,
     );
 
-    final latitude = latLng['latitude'];
-    final longitude = latLng['longitude'];
-    final formattedLocation = 'Lat:$latitude, Lng:$longitude';
+    latitude = latLng['latitude'];
+    longitude = latLng['longitude'];
+    // final formattedLocation = 'Lat:$latitude, Lng:$longitude';
 
-    // Masukkan string ke dalam alamatController
-    alamatEditController.text = formattedLocation;
-
-    // print(latitude);
-    // print(longitude);
+    // // Masukkan string ke dalam alamatController
+    // alamatEditController.text = formattedLocation;
   }
 
   Future<void> hapusDataRekap(BuildContext context, int id) async {
